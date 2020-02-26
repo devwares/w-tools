@@ -2,7 +2,7 @@
 Add-Type -Path "C:\Program Files\Common Files\Microsoft Shared\Web Server Extensions\16\ISAPI\Microsoft.SharePoint.Client.dll"
 Add-Type -Path "C:\Program Files\Common Files\Microsoft Shared\Web Server Extensions\16\ISAPI\Microsoft.SharePoint.Client.Runtime.dll"
 Function Download-FileFromLibrary()
-{
+{ 
     param
     (
         [Parameter(Mandatory=$true)] [string] $SiteURL,
@@ -159,3 +159,76 @@ Function Upload-AllFilesFromDirectory()
 
 }
 
+Function Get-AllFilesFromDirectory()
+{
+    param
+    (
+        [Parameter(Mandatory=$true)] [string] $SiteURL,
+        [Parameter(Mandatory=$true)] [string] $LibraryName,
+        [Parameter(Mandatory=$true)] [string] $User,
+        [Parameter(Mandatory=$true)] [Security.SecureString] $Password,
+        [Parameter(Mandatory=$false)] [bool] $Recursive
+    )
+    Function Get-AllFilesFromFolder()
+    {
+        param
+        (
+            [Parameter(Mandatory=$true)] [Microsoft.SharePoint.Client.Folder]$Folder,
+            [Parameter(Mandatory=$false)] [bool] $Recursive
+        )
+    
+        #Get All Files of the Folder
+        $Ctx =  $Folder.Context
+        $Ctx.load($Folder.files)
+        $Ctx.ExecuteQuery()
+      
+        # Initialize object
+        $SPFileListFromFolder = @()
+
+        # Loop on all files in folder
+        ForEach ($File in $Folder.files)
+        {
+            #Get the File Name or do something
+            # Write-host -f Green $File.Name
+            $SPFileListFromFolder += $File
+
+        }
+    
+        if ($Recursive){
+            #Recursively Call the function to get files of all folders
+            $Ctx.load($Folder.Folders)
+            $Ctx.ExecuteQuery()
+    
+            #Exclude "Forms" system folder and iterate through each folder
+            ForEach($SubFolder in $Folder.Folders | Where {$_.Name -ne "Forms"})
+            {
+                $SPFileListRecursive = Get-AllFilesFromFolder -Folder $SubFolder -Recursive $true
+                $SPFileListFromFolder += $SPFileListRecursive
+            }
+        }
+
+        return $SPFileListFromFolder
+
+    }
+
+    Try {
+        # Credentials
+        $Credentials = New-Object Microsoft.SharePoint.Client.SharePointOnlineCredentials($User, $Password)
+
+        #Setup the context
+        $Context = New-Object Microsoft.SharePoint.Client.ClientContext($SiteURL)
+        $Context.Credentials = $Credentials
+
+        #Get the Library and Its Root Folder
+        $Library = $Context.web.Lists.GetByTitle($LibraryName)
+        $Context.Load($Library)
+        $Context.Load($Library.RootFolder)
+        $Context.ExecuteQuery()
+    
+        #Call the function to get Files of the Root Folder
+        Get-AllFilesFromFolder -Folder $Library.RootFolder -Recursive $Recursive
+     }
+    Catch {
+        write-host -f Red "Error:" $_.Exception.Message
+    }
+}
