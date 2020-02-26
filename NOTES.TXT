@@ -8,8 +8,53 @@
 --------------------------------------
 NOTES PROCHAIN COMMIT
 --------------------------------------
+SHAREPOINT
+- added Function Remove-SPFile()
+- added Function Get-SPContext()
+- modified Get-AllFilesFromDirectory() to use Get-SPContext()
+- modified upload notice message in function Upload-FileToLibrary()
+- added "DestinationFolder" param to function Get-AllFilesFromDirectory()
 
 --------------------------------------
 DIVERS
 --------------------------------------
 
+Write-host -f Green $File.Length
+#Write-host -f Green $File.ModifiedBy
+Write-host -f Green $File.Name
+#Write-host -f Green $File.Path
+Write-host -f Green $File.TimeCreated
+Write-host -f Green $File.TimeLastModified
+Write-host -f Green $File.UniqueId
+
+#$FileList = [PSCustomObject]@{
+#    Name     = ''
+#    Length = ''
+#    ModifiedBy    = ''
+#    Path = ''
+#    TimeCreated = ''
+#    TimeLastModified = ''
+#}
+
+--------------------------------------
+IDEES KEVIN
+--------------------------------------
+
+- liste des sites d'une collection de sites
+
+
+
+- fonction
+	- en entrée soit : type liste (library), site, element, file, folder
+	-> 
+	
+--------------------------------------
+IDEES FONCTIONS
+--------------------------------------
+Function Set-SPAuthorisation()
+{
+}
+
+Function Remove-SPFile()
+{
+}

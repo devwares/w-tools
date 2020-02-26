@@ -87,7 +87,7 @@ Function Upload-FileToLibrary()
         $Context.Load($Upload)
         $Context.ExecuteQuery()
 
-        Write-host -f Green "File '$SourceFile' Uploaded to '$SiteURL$DocLibName' Successfully!" $_.Exception.Message
+        Write-host -f Green "File '$SourceFile' Uploaded to '$SiteURL$DocLibName/$TargetDirectory' Successfully!" $_.Exception.Message
         
     }
 
@@ -163,10 +163,9 @@ Function Get-AllFilesFromDirectory()
 {
     param
     (
-        [Parameter(Mandatory=$true)] [string] $SiteURL,
+        [Parameter(Mandatory=$true)] [Microsoft.SharePoint.Client.ClientContext] $SPContext,        
         [Parameter(Mandatory=$true)] [string] $LibraryName,
-        [Parameter(Mandatory=$true)] [string] $User,
-        [Parameter(Mandatory=$true)] [Security.SecureString] $Password,
+        [Parameter(Mandatory=$false)] [string] $DirectoryName,
         [Parameter(Mandatory=$false)] [bool] $Recursive
     )
     Function Get-AllFilesFromFolder()
@@ -211,6 +210,35 @@ Function Get-AllFilesFromDirectory()
 
     }
 
+    #Get the Library and Its Root Folder
+    $Library = $Context.web.Lists.GetByTitle($LibraryName)
+    $Context.Load($Library)
+    $Context.Load($Library.RootFolder)
+    $Context.ExecuteQuery()
+
+    #Call the function to get Files of the Root Folder or specified Folder
+    if ([string]::IsNullOrEmpty($DirectoryName)){
+        Get-AllFilesFromFolder -Folder $Library.RootFolder -Recursive $Recursive
+    }
+    else{
+        $ServerRelativeUrlOfRootFolder = $Library.RootFolder.ServerRelativeUrl
+        $TargetFolderUrl=  $ServerRelativeUrlOfRootFolder + "/" + $DirectoryName
+        $TargetFolder = $Context.Web.GetFolderByServerRelativeUrl($TargetFolderUrl)
+        Get-AllFilesFromFolder -Folder $TargetFolder -Recursive $Recursive
+    }
+
+}
+
+Function Get-SPContext
+{
+
+    param
+    (
+        [Parameter(Mandatory=$true)] [string] $SiteURL,
+        [Parameter(Mandatory=$true)] [string] $User,
+        [Parameter(Mandatory=$true)] [Security.SecureString] $Password
+    )
+
     Try {
         # Credentials
         $Credentials = New-Object Microsoft.SharePoint.Client.SharePointOnlineCredentials($User, $Password)
@@ -219,16 +247,26 @@ Function Get-AllFilesFromDirectory()
         $Context = New-Object Microsoft.SharePoint.Client.ClientContext($SiteURL)
         $Context.Credentials = $Credentials
 
-        #Get the Library and Its Root Folder
-        $Library = $Context.web.Lists.GetByTitle($LibraryName)
-        $Context.Load($Library)
-        $Context.Load($Library.RootFolder)
-        $Context.ExecuteQuery()
-    
-        #Call the function to get Files of the Root Folder
-        Get-AllFilesFromFolder -Folder $Library.RootFolder -Recursive $Recursive
+        # Return context
+        return $Context
      }
+
     Catch {
         write-host -f Red "Error:" $_.Exception.Message
     }
+
+}
+
+Function Remove-SPFile()
+{
+    param
+    (
+        [Parameter(Mandatory=$true)] [Microsoft.SharePoint.Client.ClientContext] $SPContext,
+        [Parameter(Mandatory=$true)] [Microsoft.SharePoint.Client.ClientObject] $SPFile      
+    )
+
+    Write-Host "Je supprime le fichier " $SPFile.Name
+    $SPFile.Recycle()
+    $SPContext.ExecuteQuery()
+
 }
