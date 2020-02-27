@@ -5,24 +5,15 @@ Function Download-FileFromLibrary()
 { 
     param
     (
-        [Parameter(Mandatory=$true)] [string] $SiteURL,
-        [Parameter(Mandatory=$true)] [string] $User,
-        [Parameter(Mandatory=$true)] [Security.SecureString] $Password,
+        [Parameter(Mandatory=$true)] [Microsoft.SharePoint.Client.ClientContext] $SPContext, 
         [Parameter(Mandatory=$true)] [string] $SourceFile,
         [Parameter(Mandatory=$true)] [string] $TargetFile
     )
  
     Try {
-
-        # Credentials
-        $Credentials = New-Object Microsoft.SharePoint.Client.SharePointOnlineCredentials($User, $Password)
- 
-        #Setup the context
-        $Ctx = New-Object Microsoft.SharePoint.Client.ClientContext($SiteURL)
-        $Ctx.Credentials = $Credentials
-     
+   
         #sharepoint online powershell download file from library
-        $FileInfo = [Microsoft.SharePoint.Client.File]::OpenBinaryDirect($Ctx,$SourceFile)
+        $FileInfo = [Microsoft.SharePoint.Client.File]::OpenBinaryDirect($Context,$SourceFile)
         $WriteStream = [System.IO.File]::Open($TargetFile,[System.IO.FileMode]::Create)
         $FileInfo.Stream.CopyTo($WriteStream)
         $WriteStream.Close()
@@ -37,22 +28,13 @@ Function Upload-FileToLibrary()
 { 
     param
     (
-        [Parameter(Mandatory=$true)] [string] $SiteURL,
+        [Parameter(Mandatory=$true)] [Microsoft.SharePoint.Client.ClientContext] $SPContext,
         [Parameter(Mandatory=$true)] [string] $DocLibName,
-        [Parameter(Mandatory=$true)] [string] $User,
-        [Parameter(Mandatory=$true)] [Security.SecureString] $Password,
         [Parameter(Mandatory=$true)] [String] $SourceFile,
         [Parameter(Mandatory=$false)] [string] $TargetDirectory
     )
  
     Try {
-
-        # Credentials
-        $Credentials = New-Object Microsoft.SharePoint.Client.SharePointOnlineCredentials($User, $Password)
-
-        #Setup the context
-        $Context = New-Object Microsoft.SharePoint.Client.ClientContext($SiteURL)
-        $Context.Credentials = $Credentials
 
         #Retrieve list
         $List = $Context.Web.Lists.GetByTitle($DocLibName)
@@ -100,22 +82,13 @@ Function Upload-AllFilesFromDirectory()
 { 
     param
     (
-        [Parameter(Mandatory=$true)] [string] $SiteURL,
+        [Parameter(Mandatory=$true)] [Microsoft.SharePoint.Client.ClientContext] $SPContext,
         [Parameter(Mandatory=$true)] [string] $DocLibName,
-        [Parameter(Mandatory=$true)] [string] $User,
-        [Parameter(Mandatory=$true)] [Security.SecureString] $Password,
         [Parameter(Mandatory=$true)] [string] $SourceDirectory,
         [Parameter(Mandatory=$false)] [string] $TargetDirectory
     )
  
     Try {
-
-        # Credentials
-        $Credentials = New-Object Microsoft.SharePoint.Client.SharePointOnlineCredentials($User, $Password)
-
-        #Setup the context
-        $Context = New-Object Microsoft.SharePoint.Client.ClientContext($SiteURL)
-        $Context.Credentials = $Credentials
 
         #Retrieve list
         $List = $Context.Web.Lists.GetByTitle($DocLibName)

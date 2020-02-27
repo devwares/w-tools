@@ -9,15 +9,24 @@
 NOTES PROCHAIN COMMIT
 --------------------------------------
 SHAREPOINT
-- added Function Remove-SPFile()
-- added Function Get-SPContext()
-- modified Get-AllFilesFromDirectory() to use Get-SPContext()
-- modified upload notice message in function Upload-FileToLibrary()
-- added "DestinationFolder" param to function Get-AllFilesFromDirectory()
+FUNCTIONS ADAPTED TO USE Get-SPContext()
+- Function Download-FileFromLibrary() now uses Context
+- Function Upload-FileToLibrary() now uses Context
+- Function Upload-AllFilesFromDirectory() now uses Context
+
+
+--------------------------------------
+TODO
+--------------------------------------
+
+"DocLibName" : "Dossier Cabinet",
+"SourceFile": "/sites/TESTCGU001/DA/test-download01.txt",
+-> "/sites/TESTCGU001/DA/" doit disparaitre de Sourcefile dans la config/param et être autogénéré par le code
 
 --------------------------------------
 DIVERS
 --------------------------------------
+Get-Module| Where-Object {$_.Name -eq 'Sharepoint'} |Remove-Module
 
 Write-host -f Green $File.Length
 #Write-host -f Green $File.ModifiedBy
@@ -47,10 +56,15 @@ IDEES KEVIN
 - fonction
 	- en entrée soit : type liste (library), site, element, file, folder
 	-> 
-	
+
+
 --------------------------------------
-IDEES FONCTIONS
+IDEES SHAREPOINT
 --------------------------------------
+Ajouter un param pour supprimer le fichier source apres upload succes dans fx download/upload
+Ajouter TargetDirectory dans Download/upload
+Downloadfilefromlibrary : ajouter folder source
+
 Function Set-SPAuthorisation()
 {
 }
@@ -58,3 +72,5 @@ Function Set-SPAuthorisation()
 Function Remove-SPFile()
 {
 }
+
+Function 
