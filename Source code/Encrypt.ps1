@@ -40,3 +40,37 @@ function Export-Pfx(){
         write-host -f Red "Error Downloading File!" $_.Exception.Message
     }
 }
+
+function Export-EncryptedSecureString(){  
+    param
+    (
+        [Parameter(Mandatory=$true)] [string] $KeyFile,
+        [Parameter(Mandatory=$true)] [string] $PasswordFile,
+        [Parameter(Mandatory=$true)] [Security.SecureString] $Password
+    )
+
+    # Create and export Key
+    $Key = New-Object Byte[] 16
+    [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($key)
+    $Key | Out-File $KeyFile
+
+    # Create and export Password File
+    $Password | ConvertFrom-SecureString -Key $Key | Out-File $PasswordFile
+
+}
+
+function Import-EncryptedSecureString(){  
+    param
+    (
+        [Parameter(Mandatory=$true)] [string] $KeyFile,
+        [Parameter(Mandatory=$true)] [string] $EncryptedPassword
+    )
+
+    # Import Key
+    $Key = Get-Content $KeyFile
+
+    # Create and returns SecureString
+    return ($EncryptedPassword | ConvertTo-SecureString -Key $Key)
+
+}
+

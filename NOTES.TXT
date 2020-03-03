@@ -8,12 +8,8 @@
 --------------------------------------
 NOTES PROCHAIN COMMIT
 --------------------------------------
-SHAREPOINT
-FUNCTIONS ADAPTED TO USE Get-SPContext()
-- Function Download-FileFromLibrary() now uses Context
-- Function Upload-FileToLibrary() now uses Context
-- Function Upload-AllFilesFromDirectory() now uses Context
-
+ENCRYPT
+- Added function Export-EncryptedSecureString() + tests
 
 --------------------------------------
 TODO
