@@ -1,5 +1,11 @@
 ﻿function TestReceive-Winscp {
 
+	# 1) Run with zero file on server
+	# 2) Run with one or more files on server
+	# 3) Run with one or more file matching filemask on server
+	# 4) Run with wrong password
+	# 5) Run with wrong port
+	
     $workdir = "c:\0\w-tools"
     $tempdir = "c:\0\tmp"
 
