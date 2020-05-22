@@ -1,0 +1,13 @@
+{
+    "GENERAL" : {
+        "serverkey" : "ecdsa-sha2-nistp256 256 g6:e7:as:98:ce:32:c3:23:g7:29:9c:d0:c7:4d:34:e3",
+        "server": "some.server.com",
+        "port" : "22",
+        "user" : "username",
+        "path" : "/subdir",
+        "filemask" : "*.txt",
+        "destination" : "c:\\temp\\subdir",
+        "encrypted-password" : "3b16050a5345MgB8AHEARABNAE0AMA",
+		"encrypted-keyfile" : "c:\\users\\john\\masterkey.txt"
+    }
+}
