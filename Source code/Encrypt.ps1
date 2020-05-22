@@ -59,18 +59,4 @@ function Export-EncryptedSecureString(){
 
 }
 
-function Import-EncryptedSecureString(){  
-    param
-    (
-        [Parameter(Mandatory=$true)] [string] $KeyFile,
-        [Parameter(Mandatory=$true)] [string] $EncryptedPassword
-    )
-
-    # Import Key
-    $Key = Get-Content $KeyFile
-
-    # Create and returns SecureString
-    return ($EncryptedPassword | ConvertTo-SecureString -Key $Key)
-
-}
 
