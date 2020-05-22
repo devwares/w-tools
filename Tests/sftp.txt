@@ -1,0 +1,3 @@
+# Download all file with mask $filemask
+$SecurePassword = Read-Host -AsSecureString
+Receive-Winscp -Server $server -Port $port -Fingerprint $serverkey -Path $path -FileMask $filemask -Destination $destination -Username $user -SecurePassword $SecurePassword
