@@ -1,0 +1,17 @@
+function Export-EncryptedSecureString(){
+
+	test_1 {
+	
+		# Run function without "password" arg
+		Export-EncryptedSecureString -KeyFile c:\0\tmp\Keyfile.txt -PasswordFile c:\0\tmp\PasswordFile.txt
+		
+		# Get a secureString from generated files
+		$Key = Get-Content c:\0\tmp\Keyfile.txt
+		$EncryptedPassword = Get-Content c:\0\tmp\PasswordFile.txt
+		$Result = $EncryptedPassword | ConvertTo-SecureString -Key $Key
+
+		# $Result should work as securestring on any command using requiring the right password
+		MyCommand -securestring $result
+		
+	}
+}

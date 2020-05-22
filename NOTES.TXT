@@ -8,8 +8,65 @@
 --------------------------------------
 NOTES PROCHAIN COMMIT
 --------------------------------------
+ENCRYPT
+- Added function Export-EncryptedSecureString() + tests
+
+--------------------------------------
+TODO
+--------------------------------------
+
+"DocLibName" : "Dossier Cabinet",
+"SourceFile": "/sites/TESTCGU001/DA/test-download01.txt",
+-> "/sites/TESTCGU001/DA/" doit disparaitre de Sourcefile dans la config/param et être autogénéré par le code
 
 --------------------------------------
 DIVERS
 --------------------------------------
+Get-Module| Where-Object {$_.Name -eq 'Sharepoint'} |Remove-Module
 
+Write-host -f Green $File.Length
+#Write-host -f Green $File.ModifiedBy
+Write-host -f Green $File.Name
+#Write-host -f Green $File.Path
+Write-host -f Green $File.TimeCreated
+Write-host -f Green $File.TimeLastModified
+Write-host -f Green $File.UniqueId
+
+#$FileList = [PSCustomObject]@{
+#    Name     = ''
+#    Length = ''
+#    ModifiedBy    = ''
+#    Path = ''
+#    TimeCreated = ''
+#    TimeLastModified = ''
+#}
+
+--------------------------------------
+IDEES KEVIN
+--------------------------------------
+
+- liste des sites d'une collection de sites
+
+
+
+- fonction
+	- en entrée soit : type liste (library), site, element, file, folder
+	-> 
+
+
+--------------------------------------
+IDEES SHAREPOINT
+--------------------------------------
+Ajouter un param pour supprimer le fichier source apres upload succes dans fx download/upload
+Ajouter TargetDirectory dans Download/upload
+Downloadfilefromlibrary : ajouter folder source
+
+Function Set-SPAuthorisation()
+{
+}
+
+Function Remove-SPFile()
+{
+}
+
+Function 
