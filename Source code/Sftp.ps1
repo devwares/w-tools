@@ -27,14 +27,12 @@ function Receive-Winscp(){
 
     Try {
 
-        #$Path =  Convert-Pattern -Pattern $Instance.Path -Environment $Environment
-
         Write-Host "DEBUG", "Receive-Winscp", "Server: $Server"
         Write-Host "DEBUG", "Receive-Winscp", "Port: $Port"
         Write-Host "DEBUG", "Receive-Winscp", "Username: $Username"
         Write-Host "DEBUG", "Receive-Winscp", "Destination: $Destination"
 
-        #$FileMask = Convert-Pattern -Pattern $Instance.FileMask -Environment $Environment
+        $TotalNumberOfFileFound = 0
 
         # Create PSCredential
         $PSCredential = [System.Management.Automation.PSCredential]::new($Username,$SecurePassword)
@@ -93,6 +91,8 @@ function Receive-Winscp(){
 
         # Failed
         Write-Host "WARNING", "Receive-Winscp", "$($_.Exception.Message)"
+        Throw $($_.Exception.Message)
+
     }
 
     return $TotalNumberOfFileFound
