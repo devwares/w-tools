@@ -1,6 +1,6 @@
-Import-Module $PSScriptRoot\WinSCP
 
-function Send-Winscp() { 
+
+function Send-Winscp() {
     param
     (
         [Parameter(Mandatory=$true)] [string] $Server,
@@ -10,9 +10,10 @@ function Send-Winscp() {
         [Parameter(Mandatory=$true)] [string] $Destination,
         [Parameter(Mandatory=$true)] [string] $Username        
     )
+    Import-Module $PSScriptRoot\WinSCP
 }
 
-function Receive-Winscp(){     
+function Receive-Winscp(){
     param
     (
         [Parameter(Mandatory=$true)] [string] $Server,
@@ -24,6 +25,8 @@ function Receive-Winscp(){
         [Parameter(Mandatory=$true)] [string] $Destination,
         [Parameter(Mandatory=$true)] [string] $Username
     )
+
+    Import-Module $PSScriptRoot\WinSCP
 
     Try {
 
