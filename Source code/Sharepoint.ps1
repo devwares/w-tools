@@ -37,10 +37,10 @@ Function Upload-FileToLibrary()
     Try {
 
         #Retrieve list
-        $List = $Context.Web.Lists.GetByTitle($DocLibName)
-        $Context.Load($List)
-        $Context.Load($List.RootFolder)
-        $Context.ExecuteQuery()
+        $List = $SPContext.Web.Lists.GetByTitle($DocLibName)
+        $SPContext.Load($List)
+        $SPContext.Load($List.RootFolder)
+        $SPContext.ExecuteQuery()
         $ServerRelativeUrlOfRootFolder = $List.RootFolder.ServerRelativeUrl
         $UploadFolderUrl=  $ServerRelativeUrlOfRootFolder + "/" + $TargetDirectory
 
@@ -62,12 +62,12 @@ Function Upload-FileToLibrary()
         }
         Else
         {
-            $targetFolder = $Context.Web.GetFolderByServerRelativeUrl($uploadFolderUrl)
+            $targetFolder = $SPContext.Web.GetFolderByServerRelativeUrl($uploadFolderUrl)
             $Upload = $targetFolder.Files.Add($FileCreationInfo);
         }
 
-        $Context.Load($Upload)
-        $Context.ExecuteQuery()
+        $SPContext.Load($Upload)
+        $SPContext.ExecuteQuery()
 
         Write-host -f Green "File '$SourceFile' Uploaded to '$SiteURL$DocLibName/$TargetDirectory' Successfully!" $_.Exception.Message
         
@@ -91,10 +91,10 @@ Function Upload-AllFilesFromDirectory()
     Try {
 
         #Retrieve list
-        $List = $Context.Web.Lists.GetByTitle($DocLibName)
-        $Context.Load($List)
-        $Context.Load($List.RootFolder)
-        $Context.ExecuteQuery()
+        $List = $SPContext.Web.Lists.GetByTitle($DocLibName)
+        $SPContext.Load($List)
+        $SPContext.Load($List.RootFolder)
+        $SPContext.ExecuteQuery()
         $ServerRelativeUrlOfRootFolder = $List.RootFolder.ServerRelativeUrl
         $UploadFolderUrl=  $ServerRelativeUrlOfRootFolder + "/" + $TargetDirectory
 
@@ -114,12 +114,12 @@ Function Upload-AllFilesFromDirectory()
             }
             Else
             {
-                $targetFolder = $Context.Web.GetFolderByServerRelativeUrl($uploadFolderUrl)
+                $targetFolder = $SPContext.Web.GetFolderByServerRelativeUrl($uploadFolderUrl)
                 $Upload = $targetFolder.Files.Add($FileCreationInfo);
             }
 
-            $Context.Load($Upload)
-            $Context.ExecuteQuery()
+            $SPContext.Load($Upload)
+            $SPContext.ExecuteQuery()
 
             Write-host -f Green "File '$File' Uploaded to '$SiteURL$DocLibName' Successfully!" $_.Exception.Message
         }
@@ -184,10 +184,10 @@ Function Get-AllFilesFromDirectory()
     }
 
     #Get the Library and Its Root Folder
-    $Library = $Context.web.Lists.GetByTitle($LibraryName)
-    $Context.Load($Library)
-    $Context.Load($Library.RootFolder)
-    $Context.ExecuteQuery()
+    $Library = $SPContext.web.Lists.GetByTitle($LibraryName)
+    $SPContext.Load($Library)
+    $SPContext.Load($Library.RootFolder)
+    $SPContext.ExecuteQuery()
 
     #Call the function to get Files of the Root Folder or specified Folder
     if ([string]::IsNullOrEmpty($DirectoryName)){
@@ -196,7 +196,7 @@ Function Get-AllFilesFromDirectory()
     else{
         $ServerRelativeUrlOfRootFolder = $Library.RootFolder.ServerRelativeUrl
         $TargetFolderUrl=  $ServerRelativeUrlOfRootFolder + "/" + $DirectoryName
-        $TargetFolder = $Context.Web.GetFolderByServerRelativeUrl($TargetFolderUrl)
+        $TargetFolder = $SPContext.Web.GetFolderByServerRelativeUrl($TargetFolderUrl)
         Get-AllFilesFromFolder -Folder $TargetFolder -Recursive $Recursive
     }
 
@@ -217,8 +217,8 @@ Function Get-SPContext
         $Credentials = New-Object Microsoft.SharePoint.Client.SharePointOnlineCredentials($User, $Password)
 
         #Setup the context
-        $Context = New-Object Microsoft.SharePoint.Client.ClientContext($SiteURL)
-        $Context.Credentials = $Credentials
+        $SPContext = New-Object Microsoft.SharePoint.Client.ClientContext($SiteURL)
+        $SPContext.Credentials = $Credentials
 
         # Return context
         return $Context
