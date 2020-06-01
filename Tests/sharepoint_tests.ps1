@@ -1,11 +1,11 @@
 Function Test-Download-FileFromLibrary()
 {
-	# 1) $sourcefile et $targetfile avec noms de fichiers ne contenant ni espace ni caracteres speciaux
-	# 2) $sourcefile et $targetfile avec noms de fichiers contenant espaces et caracteres speciaux
-	# 3) $sourcefile sur chemin réseau
-	# 4) $sourcefile avec un nom de fichier qui n'existe pas
-	# 5) $targetfile avec un nom de fichier qui n'existe pas
-	# 6) $targetfile avec un nom de fichier en cours d'édition (ex: .docx ouvert dans word)
+	# 1) $sourcefile and $targetfile names without spaces and special characters
+	# 2) $sourcefile et $targetfile names WITH spaces and special characters
+	# 3) $sourcefile on a network share
+	# 4) $sourcefile with path that doesn't exist
+	# 5) $targetfile with path that doesn't exist
+	# 6) $targetfile being edited (ex: .docx opened in ms-word)
 
 	Get-module | Remove-Module
 	Import-Module '..\Source code'
