@@ -1,0 +1,11 @@
+{
+    "Download-FileFromLibrary" : {
+        "User": "user@domain.com",
+        "Password": "",
+        "Encrypted-Password": "",
+		"Encrypted-Keyfile" : "c:\\users\\john\\masterkey.txt",
+        "SiteURL" : "https://domain.sharepoint.com/sites/TEST",
+        "SourceFile": "/sites/TEST/subdir1/testfile.txt",
+        "TargetFile": "c:\\users\\john\\download\\testjp.docx"
+    }
+}
