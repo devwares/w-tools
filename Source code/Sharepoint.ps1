@@ -13,7 +13,7 @@ Function Download-FileFromLibrary()
     Try {
    
         #sharepoint online powershell download file from library
-        $FileInfo = [Microsoft.SharePoint.Client.File]::OpenBinaryDirect($Context,$SourceFile)
+        $FileInfo = [Microsoft.SharePoint.Client.File]::OpenBinaryDirect($SPContext,$SourceFile)
         $WriteStream = [System.IO.File]::Open($TargetFile,[System.IO.FileMode]::Create)
         $FileInfo.Stream.CopyTo($WriteStream)
         $WriteStream.Close()
