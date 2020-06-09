@@ -13,7 +13,7 @@
     Import-Module "$workdir\Source code"
 
     # Load General Config & Parameters
-    $JSONConfigPath = "$workdir\Configuration Files\sftp_winscp_tests.json"
+    $JSONConfigPath = "$tempdir\sftp_winscp_tests.json"
     $Config = (Get-Content $JSONConfigPath) | ConvertFrom-Json
     $serverkey = $Config.GENERAL.serverkey
     $server = $Config.GENERAL.server
@@ -40,3 +40,4 @@
     Receive-Winscp -Server $server -Port $port -Fingerprint $serverkey -Path $path -FileMask $filemask -Destination $destination -Username $user -SecurePassword $SecurePassword
 
 }
+TestReceive-Winscp

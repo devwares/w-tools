@@ -42,16 +42,10 @@ Write-host -f Green $File.UniqueId
 #}
 
 --------------------------------------
-IDEES KEVIN
+IDEES
 --------------------------------------
 
-- liste des sites d'une collection de sites
 
-
-
-- fonction
-	- en entrée soit : type liste (library), site, element, file, folder
-	-> 
 
 
 --------------------------------------
@@ -60,6 +54,10 @@ IDEES SHAREPOINT
 Ajouter un param pour supprimer le fichier source apres upload succes dans fx download/upload
 Ajouter TargetDirectory dans Download/upload
 Downloadfilefromlibrary : ajouter folder source
+- liste des sites d'une collection de sites
+- fonction
+	- en entrée soit : type liste (library), site, element, file, folder
+	-> 
 
 Function Set-SPAuthorisation()
 {
