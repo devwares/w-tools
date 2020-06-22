@@ -221,7 +221,7 @@ Function Get-SPContext
         $SPContext.Credentials = $Credentials
 
         # Return context
-        return $Context
+        return $SPContext
      }
 
     Catch {
