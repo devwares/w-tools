@@ -9,3 +9,15 @@ pressakey() {
     fi
     done
 }
+
+filenamewithoutext() {
+    fnwoefullfilename=$(basename -- "$1")
+    fnwoefilename="${fnwoefullfilename%.*}"
+    echo "$fnwoefilename"
+}
+
+fileextension() {
+    fextfullfilename=$(basename -- "$1")
+    fextfullfileext="${fextfullfilename##*.}"
+    echo "$fextfullfileext"
+}
