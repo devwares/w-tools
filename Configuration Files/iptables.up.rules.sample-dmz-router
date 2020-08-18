@@ -1,0 +1,31 @@
+*filter
+:FORWARD DROP [0:0]
+:OUTPUT DROP [0:0]
+:LOGGING - [0:0]
+:INPUT DROP [0:0]
+-A INPUT -i lo -j ACCEPT
+-A INPUT -i eth0 -j ACCEPT
+-A INPUT -m conntrack -i eth1 --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A INPUT -m conntrack -i eth2 --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A FORWARD -i eth0 -j ACCEPT
+-A FORWARD -m conntrack -i eth1 --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A FORWARD -m conntrack -i eth2 --ctstate ESTABLISHED,RELATED -j ACCEPT
+-A OUTPUT -o lo -j ACCEPT
+-A OUTPUT -o eth0 -j ACCEPT
+-A OUTPUT -o eth1 -j ACCEPT
+-A OUTPUT -o eth2 -j ACCEPT
+-A LOGGING -d 224.0.0.1 -j RETURN
+-A LOGGING -d 224.0.0.251 -j RETURN
+-A LOGGING -j LOG  --log-prefix "[firewall]"
+-A INPUT -j LOGGING
+-A FORWARD -j LOGGING
+-A OUTPUT -j LOGGING
+COMMIT
+*mangle
+COMMIT
+*nat
+:POSTROUTING - [0:0]
+:PREROUTING - [0:0]
+-A POSTROUTING -s 192.168.10.0/24 -j MASQUERADE
+-A POSTROUTING -s 192.168.1.0/24 ! -d 192.168.10.0/24 -j MASQUERADE
+COMMIT
