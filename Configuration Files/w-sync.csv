@@ -1,0 +1,18 @@
+# EMPTY VALUES MUST ABSOLUTLY BE FILLED WITH SPACES !
+# Local drive letters must be preceded by "/cygdrive/" and followed by slash ("/")
+# Antislashes ("\") must be replaces by slashes ("/")
+# e.g "C:\Temp" becomes "/cygdrive/C/Temp"
+
+#1A : sync type (1 = local-ssh, 2 = ssh-local, 3 = local-local)
+#2B : source directory/path
+#3C : target directory/path
+#4D : ssh server (ssh sync only)
+#5E : port ssh (ssh sync only)
+#6F : user ssh (ssh sync only)
+#7G : fichier clef rsa (ssh sync only)
+#8H : additional rsync arguments (optional)
+
+# Example configuration lines :
+#1,"/cygdrive/C/users/john/Documents","/home/john/backup",server.domain.com,22,john,"/cygdrive/C/Users/john/Documents/clefs/id_rsa",--dry-run
+#2,"/home/john/backup/docs/","/cygdrive/C/users/john/Documents",server.domain.com,22,john,"/cygdrive/C/Users/john/Documents/clefs/id_rsa",--dry-run
+3,"/cygdrive/C/users/john/Documents","/cygdrive/D/backup/john", , , , ,--dry-run
