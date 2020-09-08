@@ -55,7 +55,7 @@ REM *****************************************************
 REM Make cygwin home as a part of system PATH to find required DLLs
 REM *****************************************************
 SET CWOLDPATH=%PATH%
-SET CWPATH="%SCRIPT_HOME%..\..\..\Development tools\cygwin\bin"
+SET CWPATH=%SCRIPT_HOME%..\..\Development tools\cygwin\bin
 SET PATH="%CWPATH%";%PATH%
 
 REM *****************************************************
