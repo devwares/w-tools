@@ -11,6 +11,11 @@ REM *****************************************************
 SETLOCAL
 
 REM *****************************************************
+REM Remember original dir
+REM *****************************************************
+SET SYNCBASEDIR=%CD%
+
+REM *****************************************************
 REM CSV CONFIG FILE FORMAT
 REM
 REM EMPTY VALUES MUST ABSOLUTLY BE FILLED WITH SPACES !
@@ -35,7 +40,7 @@ REM *****************************************************
 set SYNC_LIST=%1
 
 REM *****************************************************
-REM Optional sh script file path : standard out if empty
+REM Optional sh script file path to be executed on remote host after ssh sync
 REM *****************************************************
 set SYNC_SHSCRIPT=%2
 
@@ -44,19 +49,20 @@ REM Specify where to endd rsync and related files
 REM Default value is the directory of this batch file
 REM *****************************************************
 SET SCRIPT_HOME=%~dp0
+SET CWOLDPATH=%PATH%
+CD /D %SCRIPT_HOME%..\..\Development tools\cygwin
+SET CWRSYNCHOME=%CD%
 
 REM *****************************************************
 REM Create a home directory for .ssh 
 REM *****************************************************
-
-IF NOT EXIST %USERPROFILE%\.ssh MKDIR %USERPROFILE%\.ssh
+IF NOT EXIST "%CWRSYNCHOME%\home\%USERNAME%" MKDIR "%CWRSYNCHOME%\home\%USERNAME%"
+IF NOT EXIST "%CWRSYNCHOME%\home\%USERNAME%\.ssh" MKDIR "%CWRSYNCHOME%\home\%USERNAME%\.ssh"
 
 REM *****************************************************
 REM Make cygwin home as a part of system PATH to find required DLLs
 REM *****************************************************
-SET CWOLDPATH=%PATH%
-SET CWPATH=%SCRIPT_HOME%..\..\Development tools\cygwin\bin
-SET PATH="%CWPATH%";%PATH%
+SET PATH="%CWRSYNCHOME%\bin";%PATH%
 
 REM *****************************************************
 REM Windows paths may contain a colon (:) as a part of drive designation and 
@@ -103,7 +109,7 @@ FOR /f "tokens=1,2,3,4,5,6,7,8 delims=," %%a in (%SYNC_LIST%) do (
 		echo.
 		echo ############################ RSYNC : LOCAL TO SSH #############################
 		echo #                                                                             #
-		echo # %%b --^> %%d:%%e
+		echo # %%b --^> %%d:%%c
 		echo #                                                                             #
 		echo ###############################################################################
 		echo.
@@ -117,7 +123,7 @@ FOR /f "tokens=1,2,3,4,5,6,7,8 delims=," %%a in (%SYNC_LIST%) do (
 		echo.
 		echo ############################ RSYNC : SSH TO LOCAL #############################
 		echo #                                                                             #
-		echo # %%d:%%b --^> %%d:%%e
+		echo # %%d:%%b --^> %%c
 		echo #                                                                             #
 		echo ###############################################################################
 		echo.
@@ -147,8 +153,9 @@ echo.
 echo SYNC STOPPED %date% AT %time:~0,5%
 echo _______________________________________________________________________________
 
-REM RESTORE INITIAL PATH VALUE
+REM RESTORE INITIAL VALUES
 SET PATH=%CWOLDPATH%
+CD /D %SYNCBASEDIR%
 goto end
 
 :help
