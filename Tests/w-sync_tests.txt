@@ -4,3 +4,4 @@
 - network share to network share
 - local drive to ssh without script
 - local drive to ssh with script
+- paths with spaces
