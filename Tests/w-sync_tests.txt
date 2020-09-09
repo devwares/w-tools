@@ -1,0 +1,6 @@
+- local drive to local drive
+- local drive to network share
+- network share to local drive
+- network share to network share
+- local drive to ssh without script
+- local drive to ssh with script
