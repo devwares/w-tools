@@ -142,7 +142,7 @@ FOR /f "tokens=1,2,3,4,5,6,7,8 delims=," %%a in (%SYNC_LIST%) do (
 		echo #                                                                             #
 		echo ###############################################################################
 		echo.
-		rsync %%h -r -t -v --progress --delete -s "%%b" "%%c"
+		rsync %%h -r -t -v --progress --delete -s %%b %%c
 	
 	)
 
