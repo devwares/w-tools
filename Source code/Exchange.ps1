@@ -1,5 +1,6 @@
 function Send-ExchangeMail
 {
+    
     Param(
         [parameter(Mandatory=$False)][string] $ExchangeServerName,
         [parameter(Mandatory=$False)][int32] $ExchangeServerPort,
@@ -40,8 +41,6 @@ function Send-ExchangeMail
     }
  
     # Send mail using hash content
-    #  -WarningAction Ignore
-    Write-Host "Debut"
     try{
         if (!$ExchangeAttachementsList){Send-MailMessage @ExchangeMailParameters -ErrorAction Stop}
         else {Send-MailMessage @ExchangeMailParameters -Attachments $ExchangeAttachementsList -ErrorAction Stop}
