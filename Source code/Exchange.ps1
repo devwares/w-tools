@@ -134,7 +134,14 @@ function New-ExchangeMeeting
             $appointment.Body = $MeetingBody
             $appointment.Start = $MeetingStartDatetime;
             $appointment.End = $MeetingEndDatetime;
-                        
+
+        # Add attachment(s) if specified
+        If ($ExchangeAttachementsList){
+            ForEach ($file in $ExchangeAttachementsList){
+                $appointment.Attachments.AddFileAttachment($file);
+            }
+        }
+
         $RequiredAttendees = $row.advisorEmail;
         if($RequiredAttendees) {$RequiredAttendees | %{[void]$appointment.RequiredAttendees.Add($_)}}
 

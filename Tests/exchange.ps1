@@ -41,5 +41,6 @@ Function Test-New-ExchangeMeeting()
     # Create Teams Office 365 meeting
 
     # Create Office 365 meeting with attached files
+    $MeetingId = New-ExchangeMeeting -ExchangeUserName $username -ExchangePassword $password -ExchangeMeetingTitle $title -ExchangeMeetingBody $body -ExchangeMeetingStartDate $start -ExchangeMeetingEndDate $end -ExchangeMeetingIsTeams $teams -ExchangeAttachementsList $filelist
 
 }
