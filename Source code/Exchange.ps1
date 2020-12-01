@@ -14,7 +14,7 @@ function Send-SimpleMail
         [parameter(Mandatory=$False)][array] $AttachementsList
     )
 
-    # Set default values for SMTP server if not specified
+    # Set Office 365 default values for SMTP server if not specified
     if ([string]::IsNullOrEmpty($ServerName)){$ServerName = 'smtp.office365.com'}
     if (!$ServerPort){$ServerPort = 25} # alternate value for Simple = 587
     if (!$ServerUseSsl){$ServerUseSsl = $true}
@@ -54,23 +54,109 @@ function Send-SimpleMail
 
 }
 
+function Send-ExchangeMail
+{
+
+    # Param(
+    #     [parameter(Mandatory=$False)][string] $ServerName,
+    #     [parameter(Mandatory=$False)][int32] $ServerPort,
+    #     [parameter(Mandatory=$False)][bool] $ServerUseSsl,
+    #     [parameter(Mandatory=$True)][string] $UserName,
+    #     [parameter(Mandatory=$True)][SecureString] $Password,
+    #     [parameter(Mandatory=$True)][string] $MailTo,
+    #     [parameter(Mandatory=$True)][string] $MailTitle,
+    #     [parameter(Mandatory=$True)][string] $MailBody,
+    #     [parameter(Mandatory=$False)][bool] $BodyAsHtml,
+    #     [parameter(Mandatory=$False)][array] $AttachementsList
+    # )
+
+    # Load Exchange Web Services Managed API
+    $EWSServicePath = 'C:\Program Files\Microsoft\Exchange\Web Services\2.2\Microsoft.Exchange.WebServices.dll'
+    Import-Module $EWSServicePath
+
+}
+
+
+# TODO : fix return string
+# TODO : isteams
+# TODO : attachements
 function New-ExchangeMeeting
 {
     Param(
-        [parameter(Mandatory=$True)][string] $ExchangeServerName,
-        [parameter(Mandatory=$True)][string] $ExchangeServerPort,
+        [parameter(Mandatory=$False)][string] $ExchangeWebServiceUrl,
+        [parameter(Mandatory=$False)][string] $ExchangeWebServiceDll,
         [parameter(Mandatory=$True)][string] $ExchangeUserName,
         [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingTitle,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingBody,
-        [parameter(Mandatory=$True)][string] $ExchangeMeetingTime,
+        [parameter(Mandatory=$True)][string] $ExchangeMeetingStartDate,
+        [parameter(Mandatory=$True)][string] $ExchangeMeetingEndDate,
         [parameter(Mandatory=$True)][bool] $ExchangeMeetingIsTeams,
         [parameter(Mandatory=$False)][array] $ExchangeAttachementsList
     )
 
-    # MeetingId if created, else null
-    $ExchangeMeetingState = $null
-    return $ExchangeMeetingState
+    Try {
+
+        # Set default path to Dll if not specified
+        if ([string]::IsNullOrEmpty($ExchangeWebServiceDll)){$ExchangeWebServiceDll = 'C:\Program Files\Microsoft\Exchange\Web Services\2.2\Microsoft.Exchange.WebServices.dll'}
+        
+        # Load Exchange Web Services API
+        Import-Module $ExchangeWebServiceDll
+
+        # Create EWS object
+        $exchService = new-object Microsoft.Exchange.WebServices.Data.ExchangeService([Microsoft.Exchange.WebServices.Data.ExchangeVersion]::Exchange2010)
+
+        # Credentials
+        $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ExchangeUserName, $ExchangePassword
+        $exchService.Credentials = new-object Microsoft.Exchange.WebServices.Data.WebCredentials($cred)
+
+        # Set default Office 365 Url for Exchange Web Service if not specified
+        if ([string]::IsNullOrEmpty($ExchangeWebServiceUrl)){$ExchangeWebServiceUrl = "https://outlook.office365.com/EWS/Exchange.asmx"}
+        $exchService.Url= new-object Uri($ExchangeWebServiceUrl)
+
+        # setup extended property set
+        $CleanGlobalObjectId = new-object Microsoft.Exchange.WebServices.Data.ExtendedPropertyDefinition([Microsoft.Exchange.WebServices.Data.DefaultExtendedPropertySet]::Meeting, 0x23, [Microsoft.Exchange.WebServices.Data.MapiPropertyType]::Binary);
+        $psPropSet = new-object Microsoft.Exchange.WebServices.Data.PropertySet([Microsoft.Exchange.WebServices.Data.BasePropertySet]::FirstClassProperties);
+        $psPropSet.Add($CleanGlobalObjectId);
+
+        # Bind to the Calendar folder  
+        # $folderid generates a true
+        $folderid = new-object Microsoft.Exchange.WebServices.Data.FolderId([Microsoft.Exchange.WebServices.Data.WellKnownFolderName]::Calendar,$MailboxName)     
+        $Calendar = [Microsoft.Exchange.WebServices.Data.Folder]::Bind($exchService,$folderid)
+
+        # Convert date strings to system.datetime
+        $MeetingStartDatetime=[System.DateTime]::ParseExact($ExchangeMeetingStartDate,'yyyyMMddHHmm',$null)
+        $MeetingEndDatetime=[System.DateTime]::ParseExact($ExchangeMeetingEndDate,'yyyyMMddHHmm',$null)
+
+        # Create Appointment
+        $appointment = New-Object Microsoft.Exchange.WebServices.Data.Appointment -ArgumentList $exchService
+            $appointment.Subject = $MeetingSubject
+            $appointment.Body = $MeetingBody
+            $appointment.Start = $MeetingStartDatetime;
+            $appointment.End = $MeetingEndDatetime;
+                        
+        $RequiredAttendees = $row.advisorEmail;
+        if($RequiredAttendees) {$RequiredAttendees | %{[void]$appointment.RequiredAttendees.Add($_)}}
+
+        $appointment.Save([Microsoft.Exchange.WebServices.Data.SendInvitationsMode]::SendToAllAndSaveCopy)
+                    
+        # Set the unique id for the appointment and convert to text
+            $appointment.Load($psPropSet);
+            $CalIdVal = $null;
+            $appointment.TryGetProperty($CleanGlobalObjectId, [ref]$CalIdVal);
+            $CalIdVal64 = [Convert]::ToBase64String($CalIdVal)
+
+        }
+
+    Catch{
+
+        Write-Error "Meeting was not created --> $($_.Exception.Message)" -ErrorAction:Continue
+        return $null
+
+    }
+
+    # Return Unique id for created meeting
+    return [string]$CalIdVal
 
 }
 
