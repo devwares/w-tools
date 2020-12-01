@@ -1,6 +1,6 @@
-﻿Function Test-Send-EchangeMail()
+﻿Function Test-Send-SimpleMail()
 {
-    $username = 'user@officedomain.com'
+    $username = 'sender@domain.com'
     $password = Read-Host "Enter password of $username" -AsSecureString
     $to = 'destination@domain.com'
     $subject = 'Test Mail'
@@ -10,12 +10,12 @@
     $filelist =@("C:\temp\file1.txt","C:\temp\file2.txt")
 
     # Send mail with default server parameters, without attachment
-    $return = Send-ExchangeMail -ExchangeUserName $username -ExchangePassword $password -ExchangeMailTo $to -ExchangeMailTitle $subject -ExchangeMailBody $body
+    $return = Send-SimpleMail -UserName $username -Password $password -MailTo $to -MailTitle $subject -MailBody $body
     
     # Send mail with default server parameters, with files attached
-    $return = Send-ExchangeMail -ExchangeUserName $username -ExchangePassword $password -ExchangeMailTo $to -ExchangeMailTitle $subject -ExchangeMailBody $body -ExchangeAttachementsList $filelist
+    $return = Send-SimpleMail -UserName $username -Password $password -MailTo $to -MailTitle $subject -MailBody $body -AttachementsList $filelist
 
     # Send mail with custom server parameters
-    $return = Send-ExchangeMail -ExchangeServerName $server -ExchangeServerPort $port -ExchangeUserName $username -ExchangePassword $password -ExchangeMailTo $to -ExchangeMailTitle $subject -ExchangeMailBody $body
+    $return = Send-SimpleMail -ServerName $server -ServerPort $port -UserName $username -Password $password -MailTo $to -MailTitle $subject -MailBody $body
 
 }

@@ -1,49 +1,49 @@
-function Send-ExchangeMail
+function Send-SimpleMail
 {
     
     Param(
-        [parameter(Mandatory=$False)][string] $ExchangeServerName,
-        [parameter(Mandatory=$False)][int32] $ExchangeServerPort,
-        [parameter(Mandatory=$False)][bool] $ExchangeServerUseSsl,
-        [parameter(Mandatory=$True)][string] $ExchangeUserName,
-        [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
-        [parameter(Mandatory=$True)][string] $ExchangeMailTo,
-        [parameter(Mandatory=$True)][string] $ExchangeMailTitle,
-        [parameter(Mandatory=$True)][string] $ExchangeMailBody,
-        [parameter(Mandatory=$False)][bool] $ExchangeMailBodyAsHtml,
-        [parameter(Mandatory=$False)][array] $ExchangeAttachementsList
+        [parameter(Mandatory=$False)][string] $ServerName,
+        [parameter(Mandatory=$False)][int32] $ServerPort,
+        [parameter(Mandatory=$False)][bool] $ServerUseSsl,
+        [parameter(Mandatory=$True)][string] $UserName,
+        [parameter(Mandatory=$True)][SecureString] $Password,
+        [parameter(Mandatory=$True)][string] $MailTo,
+        [parameter(Mandatory=$True)][string] $MailTitle,
+        [parameter(Mandatory=$True)][string] $MailBody,
+        [parameter(Mandatory=$False)][bool] $BodyAsHtml,
+        [parameter(Mandatory=$False)][array] $AttachementsList
     )
 
-    # Set default values for Exchange server if not specified
-    if ([string]::IsNullOrEmpty($ExchangeServerName)){$ExchangeServerName = 'smtp.office365.com'}
-    if (!$ExchangeServerPort){$ExchangeServerPort = 25} # alternate value for Exchange = 587
-    if (!$ExchangeServerUseSsl){$ExchangeServerUseSsl = $true}
+    # Set default values for SMTP server if not specified
+    if ([string]::IsNullOrEmpty($ServerName)){$ServerName = 'smtp.office365.com'}
+    if (!$ServerPort){$ServerPort = 25} # alternate value for Simple = 587
+    if (!$ServerUseSsl){$ServerUseSsl = $true}
 
     # Credentials
-    $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ExchangeUserName, $ExchangePassword
+    $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $UserName, $Password
     
     # Set mail default mail parameters if not specified
-    if (!$ExchangeMailBodyAsHtml){$ExchangeMailBodyAsHtml = $False}
+    if (!$BodyAsHtml){$BodyAsHtml = $False}
 
     # Prepare Hash content
-    $ExchangeMailParameters = @{
+    $MailParameters = @{
 
-    To = $ExchangeMailTo
-    From = $ExchangeUserName
-    Subject = $ExchangeMailTitle
-    Body = $ExchangeMailBody
-    BodyAsHtml = $ExchangeMailBodyAsHtml
-    SmtpServer = $ExchangeServerName
-    UseSSL = $ExchangeServerUseSsl
+    To = $MailTo
+    From = $UserName
+    Subject = $MailTitle
+    Body = $MailBody
+    BodyAsHtml = $BodyAsHtml
+    SmtpServer = $ServerName
+    UseSSL = $ServerUseSsl
     Credential = $cred
-    Port = $ExchangeServerPort
+    Port = $ServerPort
 
     }
  
     # Send mail using hash content
     try{
-        if (!$ExchangeAttachementsList){Send-MailMessage @ExchangeMailParameters -ErrorAction Stop}
-        else {Send-MailMessage @ExchangeMailParameters -Attachments $ExchangeAttachementsList -ErrorAction Stop}
+        if (!$AttachementsList){Send-MailMessage @MailParameters -ErrorAction Stop}
+        else {Send-MailMessage @MailParameters -Attachments $AttachementsList -ErrorAction Stop}
     }
     catch {
         Write-Error "Mail was not sent --> $($_.Exception.Message)" -ErrorAction:Continue
