@@ -4,18 +4,16 @@
 function Send-ExchangeMail
 {
 
-    # Param(
-    #     [parameter(Mandatory=$False)][string] $ServerName,
-    #     [parameter(Mandatory=$False)][int32] $ServerPort,
-    #     [parameter(Mandatory=$False)][bool] $ServerUseSsl,
-    #     [parameter(Mandatory=$True)][string] $UserName,
-    #     [parameter(Mandatory=$True)][SecureString] $Password,
-    #     [parameter(Mandatory=$True)][string] $MailTo,
-    #     [parameter(Mandatory=$True)][string] $MailTitle,
-    #     [parameter(Mandatory=$True)][string] $MailBody,
-    #     [parameter(Mandatory=$False)][bool] $BodyAsHtml,
-    #     [parameter(Mandatory=$False)][array] $AttachementsList
-    # )
+    Param(
+        [parameter(Mandatory=$False)][string] $ExchangeWebServiceUrl,
+        [parameter(Mandatory=$False)][string] $ExchangeWebServiceDll,
+        [parameter(Mandatory=$True)][string] $ExchangeUserName,
+        [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
+        [parameter(Mandatory=$True)][string] $ExchangeMailTo,
+        [parameter(Mandatory=$True)][string] $ExchangeMailTitle,
+        [parameter(Mandatory=$True)][string] $ExchangeMailBody,
+        [parameter(Mandatory=$False)][array] $AttachementsList
+    )
 
     # Load Exchange Web Services Managed API
     $EWSServicePath = 'C:\Program Files\Microsoft\Exchange\Web Services\2.2\Microsoft.Exchange.WebServices.dll'
