@@ -76,9 +76,6 @@ function Send-ExchangeMail
 
 }
 
-
-# TODO : fix return string
-# TODO : isteams
 function New-ExchangeMeeting
 {
     Param(
@@ -90,6 +87,8 @@ function New-ExchangeMeeting
         [parameter(Mandatory=$True)][string] $ExchangeMeetingBody,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingStartDate,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingEndDate,
+        [parameter(Mandatory=$True)][string] $ExchangeRequiredAttendees,
+        [parameter(Mandatory=$False)][string] $ExchangeOptionalAttendees,
         [parameter(Mandatory=$True)][bool] $ExchangeMeetingIsTeams,
         [parameter(Mandatory=$False)][array] $ExchangeAttachementsList
     )
@@ -120,12 +119,16 @@ function New-ExchangeMeeting
 
         # Bind to the Calendar folder  
         # $folderid generates a true
-        $folderid = new-object Microsoft.Exchange.WebServices.Data.FolderId([Microsoft.Exchange.WebServices.Data.WellKnownFolderName]::Calendar,$MailboxName)     
+        $folderid = new-object Microsoft.Exchange.WebServices.Data.FolderId([Microsoft.Exchange.WebServices.Data.WellKnownFolderName]::Calendar,$MailboxName)
         $Calendar = [Microsoft.Exchange.WebServices.Data.Folder]::Bind($exchService,$folderid)
 
         # Convert date strings to system.datetime
         $MeetingStartDatetime=[System.DateTime]::ParseExact($ExchangeMeetingStartDate,'yyyyMMddHHmm',$null)
         $MeetingEndDatetime=[System.DateTime]::ParseExact($ExchangeMeetingEndDate,'yyyyMMddHHmm',$null)
+
+        # Split attendees strings
+        if (-not [string]::IsNullOrEmpty($ExchangeRequiredAttendees)) {$ExchangeRequiredAttendeesList = $ExchangeRequiredAttendees.Split(";") }
+        if (-not [string]::IsNullOrEmpty($ExchangeOptionalAttendees)) {$ExchangeOptionalAttendeesList = $ExchangeOptionalAttendees.Split(";") }
 
         # Create Appointment object
         $appointment = New-Object Microsoft.Exchange.WebServices.Data.Appointment -ArgumentList $exchService
@@ -133,6 +136,12 @@ function New-ExchangeMeeting
             $appointment.Body = $MeetingBody
             $appointment.Start = $MeetingStartDatetime;
             $appointment.End = $MeetingEndDatetime;
+            foreach ($attendee in $ExchangeRequiredAttendeesList) {
+                $null = $appointment.RequiredAttendees.Add($attendee)
+            }
+            foreach ($attendee in $ExchangeOptionalAttendeesList) {
+                $null = $appointment.OptionalAttendees.Add($attendee)
+            }
 
         # Add attachment(s) if specified
         If ($ExchangeAttachementsList){
@@ -140,11 +149,6 @@ function New-ExchangeMeeting
                 $appointment.Attachments.AddFileAttachment($file);
             }
         }
-
-        #$appointment.conferencetype = 2
-        # retrouver la valeur de conferencetype pour un rendez-vous teams créé, avec son ID 
-        # ex : 040000008200E00074C5B7101A82E0080000000064701EB606C8D601000000000000000010000000B27DED920EA4D34D983AAA3EA6A103A8
-
 
         $RequiredAttendees = $row.advisorEmail;
         if($RequiredAttendees) {$RequiredAttendees | %{[void]$appointment.RequiredAttendees.Add($_)}}
@@ -154,11 +158,8 @@ function New-ExchangeMeeting
         # Set the unique id for the appointment and convert to text
             $appointment.Load($psPropSet);
             $CalIdVal = $null;
-            $appointment.TryGetProperty($CleanGlobalObjectId, [ref]$CalIdVal);
+            $appointment.TryGetProperty($CleanGlobalObjectId, [ref]$CalIdVal) | Out-Null ; # Out-Null used here not to go into pipeline
             $CalIdVal64 = [Convert]::ToBase64String($CalIdVal)
-
-            # debug           
-            $appointment | Export-Csv -Path 'c:\0\tmp\test.csv' -Delimiter ";"
 
         }
 
@@ -188,13 +189,14 @@ function Edit-ExchangeMeeting
     return $ExchangeMeetingState
 }
 
-function Remove-ExchangeMeeting
+function Stop-ExchangeMeeting
 {
     Param(
         [parameter(Mandatory=$False)][string] $ExchangeWebServiceUrl,
         [parameter(Mandatory=$False)][string] $ExchangeWebServiceDll,
         [parameter(Mandatory=$True)][string] $ExchangeUserName,
         [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
+        [parameter(Mandatory=$False)][bool] $Delete,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingId
     )
 
@@ -232,17 +234,28 @@ function Remove-ExchangeMeeting
         $sfSearchFilter = new-object Microsoft.Exchange.WebServices.Data.SearchFilter+IsEqualTo($CleanGlobalObjectId, $ExchangeMeetingId);
         $fiResult = $Calendar.FindItems($sfSearchFilter, $ivItemView) 
 
+        # Returns Null if no meeting found with specified Id
+        if ($fiResult.TotalCount -eq 0){return $null}
+
         foreach ($a in $fiResult) { 
-            $a.Delete(0);
-            # record cancellation in the data source            
+            
+            # Deletes meeting or cancel it depending of "-Delete" argument
+            If ($Delete){
+                $a.Delete(0);
+            }
+            else {
+                $a.CancelMeeting() | Out-Null # Out-Null used here not to go into pipeline
+            }
+            
         }
 
     }
 
     Catch{
-        Write-Error "Error during meeting deletion --> $($_.Exception.Message)" -ErrorAction:Continue
+        Write-Error "Error during meeting cancelation --> $($_.Exception.Message)" -ErrorAction:Continue
         return $null
     }
 
-    return $ExchangeMeetingState
+    return $ExchangeMeetingId
+
 }
