@@ -13,12 +13,67 @@ function Send-ExchangeMail
         [parameter(Mandatory=$True)][string] $ExchangeMailTo,
         [parameter(Mandatory=$True)][string] $ExchangeMailTitle,
         [parameter(Mandatory=$True)][string] $ExchangeMailBody,
-        [parameter(Mandatory=$False)][array] $AttachmentsList
+        [parameter(Mandatory=$False)][string] $ExchangeAttachments
     )
 
-    # Load Exchange Web Services Managed API
-    $EWSServicePath = 'C:\Program Files\Microsoft\Exchange\Web Services\2.2\Microsoft.Exchange.WebServices.dll'
-    Import-Module $EWSServicePath
+    try {
+
+        # Set default path to Dll if not specified
+        if ([string]::IsNullOrEmpty($ExchangeWebServiceDll)){$ExchangeWebServiceDll = 'C:\Program Files\Microsoft\Exchange\Web Services\2.2\Microsoft.Exchange.WebServices.dll'}
+        
+        # Load Exchange Web Services API
+        Import-Module $ExchangeWebServiceDll
+
+        # Create EWS object
+        $exchService = new-object Microsoft.Exchange.WebServices.Data.ExchangeService([Microsoft.Exchange.WebServices.Data.ExchangeVersion]::Exchange2013)
+
+        # Credentials
+        $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ExchangeUserName, $ExchangePassword
+        $exchService.Credentials = new-object Microsoft.Exchange.WebServices.Data.WebCredentials($cred)
+
+        # Set default Office 365 Url for Exchange Web Service if not specified
+        if ([string]::IsNullOrEmpty($ExchangeWebServiceUrl)){$ExchangeWebServiceUrl = "https://outlook.office365.com/EWS/Exchange.asmx"}
+        $exchService.Url= new-object Uri($ExchangeWebServiceUrl)
+
+        # Create the email message and set the Subject and Body
+        $message = New-Object Microsoft.Exchange.WebServices.Data.EmailMessage -ArgumentList $exchService
+        $message.Subject = $ExchangeMailTitle
+        $message.Body = $ExchangeMailBody + "`r`n"
+        $message.Body.BodyType = 'HTML'
+
+        # Add attachments if specified
+        if ($ExchangeAttachments){
+            # Split attachment string into array
+            $ExchangeAttachmentsList = $ExchangeAttachments.Split(";");
+            ForEach ($file in $ExchangeAttachmentsList){
+                # Check file path before attaching
+                if (Test-Path $file){
+                    $message.Attachments.AddFileAttachment($file) | Out-Null; # Out-Null used here not to go into pipeline
+                }
+                else {
+                    Write-Error "File not found $file --> $($_.Exception.Message)" -ErrorAction:Continue
+                    return $False                    
+                }
+            }
+        }
+
+        # Add each specified recipient
+        ForEach ($Recipient in $ExchangeMailTo)
+        {
+            $message.ToRecipients.Add($Recipient) | Out-Null # Out-Null used here not to go into pipeline
+        }
+
+        # Send the message (copy gets saved in sent items of the user)
+        $message.SendAndSaveCopy() | Out-Null # Out-Null used here not to go into pipeline
+
+    }
+
+    catch [exception] {
+        Write-Error "Mail not sent --> $($_.Exception.Message)" -ErrorAction:Continue
+        return $False
+    }
+
+    return $True
 
 }
 
