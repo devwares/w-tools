@@ -1,3 +1,6 @@
+# SUGGESTION : function that creates Appointment object from existing Id
+# SUGGESTION : change Attachment parameter format to String
+
 function Send-SimpleMail
 {
     
@@ -89,7 +92,6 @@ function New-ExchangeMeeting
         [parameter(Mandatory=$True)][string] $ExchangeMeetingEndDate,
         [parameter(Mandatory=$True)][string] $ExchangeRequiredAttendees,
         [parameter(Mandatory=$False)][string] $ExchangeOptionalAttendees,
-        [parameter(Mandatory=$True)][bool] $ExchangeMeetingIsTeams,
         [parameter(Mandatory=$False)][array] $ExchangeAttachementsList
     )
 
@@ -102,7 +104,7 @@ function New-ExchangeMeeting
         Import-Module $ExchangeWebServiceDll
 
         # Create EWS object
-        $exchService = new-object Microsoft.Exchange.WebServices.Data.ExchangeService([Microsoft.Exchange.WebServices.Data.ExchangeVersion]::Exchange2010)
+        $exchService = new-object Microsoft.Exchange.WebServices.Data.ExchangeService([Microsoft.Exchange.WebServices.Data.ExchangeVersion]::Exchange2013)
 
         # Credentials
         $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ExchangeUserName, $ExchangePassword
@@ -132,8 +134,8 @@ function New-ExchangeMeeting
 
         # Create Appointment object
         $appointment = New-Object Microsoft.Exchange.WebServices.Data.Appointment -ArgumentList $exchService
-            $appointment.Subject = $MeetingSubject
-            $appointment.Body = $MeetingBody
+            $appointment.Subject = $ExchangeMeetingTitle
+            $appointment.Body = $ExchangeMeetingBody
             $appointment.Start = $MeetingStartDatetime;
             $appointment.End = $MeetingEndDatetime;
             foreach ($attendee in $ExchangeRequiredAttendeesList) {
@@ -146,13 +148,14 @@ function New-ExchangeMeeting
         # Add attachment(s) if specified
         If ($ExchangeAttachementsList){
             ForEach ($file in $ExchangeAttachementsList){
-                $appointment.Attachments.AddFileAttachment($file);
+                $appointment.Attachments.AddFileAttachment($file) | Out-Null ; # Out-Null used here not to go into pipeline
             }
         }
 
-        $RequiredAttendees = $row.advisorEmail;
-        if($RequiredAttendees) {$RequiredAttendees | %{[void]$appointment.RequiredAttendees.Add($_)}}
+        #$RequiredAttendees = $row.advisorEmail;
+        #if($RequiredAttendees) {$RequiredAttendees | %{[void]$appointment.RequiredAttendees.Add($_)}}
 
+        # Save new meeting
         $appointment.Save([Microsoft.Exchange.WebServices.Data.SendInvitationsMode]::SendToAllAndSaveCopy)
                  
         # Set the unique id for the appointment and convert to text
@@ -173,6 +176,8 @@ function New-ExchangeMeeting
 
 }
 
+# SUGGESTION : "add", "remove" and "update" options for attendees and attachments
+# SUGGESTION : add "no notification" option
 function Edit-ExchangeMeeting
 {
 
@@ -181,22 +186,13 @@ function Edit-ExchangeMeeting
         [parameter(Mandatory=$False)][string] $ExchangeWebServiceDll,
         [parameter(Mandatory=$True)][string] $ExchangeUserName,
         [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
-        [parameter(Mandatory=$True)][string] $ExchangeMeetingId
-    )
-
-    # MeetingId if modified, else null
-    $ExchangeMeetingState = $null
-    return $ExchangeMeetingState
-}
-
-function Stop-ExchangeMeeting
-{
-    Param(
-        [parameter(Mandatory=$False)][string] $ExchangeWebServiceUrl,
-        [parameter(Mandatory=$False)][string] $ExchangeWebServiceDll,
-        [parameter(Mandatory=$True)][string] $ExchangeUserName,
-        [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
-        [parameter(Mandatory=$False)][bool] $Delete,
+        [parameter(Mandatory=$False)][string] $ExchangeMeetingTitle,
+        [parameter(Mandatory=$False)][string] $ExchangeMeetingBody,
+        [parameter(Mandatory=$False)][string] $ExchangeMeetingStartDate,
+        [parameter(Mandatory=$False)][string] $ExchangeMeetingEndDate,
+        [parameter(Mandatory=$False)][string] $ExchangeRequiredAttendees,
+        [parameter(Mandatory=$False)][string] $ExchangeOptionalAttendees,
+        [parameter(Mandatory=$False)][array] $ExchangeAttachementsList,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingId
     )
 
@@ -209,7 +205,7 @@ function Stop-ExchangeMeeting
         Import-Module $ExchangeWebServiceDll
 
         # Create EWS object
-        $exchService = new-object Microsoft.Exchange.WebServices.Data.ExchangeService([Microsoft.Exchange.WebServices.Data.ExchangeVersion]::Exchange2010)
+        $exchService = new-object Microsoft.Exchange.WebServices.Data.ExchangeService([Microsoft.Exchange.WebServices.Data.ExchangeVersion]::Exchange2013)
 
         # Credentials
         $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ExchangeUserName, $ExchangePassword
@@ -237,14 +233,144 @@ function Stop-ExchangeMeeting
         # Returns Null if no meeting found with specified Id
         if ($fiResult.TotalCount -eq 0){return $null}
 
-        foreach ($a in $fiResult) { 
+        ForEach ($appointment in $fiResult) { 
+
+            # Update attachements if specified
+            If ($ExchangeAttachementsList){
+                # Clear attachments collection
+                $appointment.Attachments.Clear()
+                # Save updated meeting without sending updates to attendees, to clear old attachments
+                $appointment.Update([Microsoft.Exchange.WebServices.Data.ConflictResolutionMode]::AutoResolve, $True)
+                # Add new attachment(s)
+                ForEach ($file in $ExchangeAttachementsList){
+                    $appointment.Attachments.AddFileAttachment($file);
+                }
+            }
+
+            # Update required attendees if specified
+            If (-not [string]::IsNullOrEmpty($ExchangeRequiredAttendees)){
+                # Split attendees strings
+                $ExchangeRequiredAttendeesList = $ExchangeRequiredAttendees.Split(";")
+                # Clear attendees collection
+                $appointment.RequiredAttendees.Clear()
+                # Add new attendee(s)
+                foreach ($attendee in $ExchangeRequiredAttendeesList) {
+                    $null = $appointment.RequiredAttendees.Add($attendee)
+                }
+            }
+
+            # Update optional attendees if specified
+            If (-not [string]::IsNullOrEmpty($ExchangeOptionalAttendees)){
+                # Split attendees strings
+                $ExchangeOptionalAttendeesList = $ExchangeOptionalAttendees.Split(";")
+                # Clear attendees collection
+                $appointment.OptionalAttendees.Clear()
+                # Add new attendee(s)
+                foreach ($attendee in $ExchangeOptionalAttendeesList) {
+                    $null = $appointment.OptionalAttendees.Add($attendee)
+                }
+            }
+
+            # Update subject if specified
+            If (-not [string]::IsNullOrEmpty($ExchangeMeetingTitle)){
+                $appointment.Subject = $ExchangeMeetingTitle
+            }
+
+            # Update body if specified
+            If (-not [string]::IsNullOrEmpty($ExchangeMeetingBody)){
+                $appointment.Body = $ExchangeMeetingBody
+            }
+
+            # Update start date if specified
+            If (-not [string]::IsNullOrEmpty($ExchangeMeetingStartDate)){
+                # Convert date strings to system.datetime
+                $MeetingStartDatetime=[System.DateTime]::ParseExact($ExchangeMeetingStartDate,'yyyyMMddHHmm',$null)
+                # Set meeting start date
+                $appointment.Start = $MeetingStartDatetime;
+            }
+
+            # Update end date if specified
+            If (-not [string]::IsNullOrEmpty($ExchangeMeetingEndDate)){
+                # Convert date strings to system.datetime
+                $MeetingEndDatetime=[System.DateTime]::ParseExact($ExchangeMeetingEndDate,'yyyyMMddHHmm',$null)
+                # Set meeting end date
+                $appointment.End = $MeetingEndDatetime;
+            }
+
+            # Save updated meeting and send notification to all attendees
+            # debug : clear()
+            $appointment.Attachments.Clear()
+            $appointment.Update([Microsoft.Exchange.WebServices.Data.SendInvitationsMode]::SendToAllAndSaveCopy)
+
+        }
+
+    }
+
+    Catch{
+        Write-Error "Error during meeting update --> $($_.Exception.Message)" -ErrorAction:Continue
+        return $null
+    }
+
+    return $ExchangeMeetingId
+
+}
+
+function Stop-ExchangeMeeting
+{
+    Param(
+        [parameter(Mandatory=$False)][string] $ExchangeWebServiceUrl,
+        [parameter(Mandatory=$False)][string] $ExchangeWebServiceDll,
+        [parameter(Mandatory=$True)][string] $ExchangeUserName,
+        [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
+        [parameter(Mandatory=$False)][bool] $Delete,
+        [parameter(Mandatory=$True)][string] $ExchangeMeetingId
+    )
+
+    Try{
+
+        # Set default path to Dll if not specified
+        if ([string]::IsNullOrEmpty($ExchangeWebServiceDll)){$ExchangeWebServiceDll = 'C:\Program Files\Microsoft\Exchange\Web Services\2.2\Microsoft.Exchange.WebServices.dll'}
+        
+        # Load Exchange Web Services API
+        Import-Module $ExchangeWebServiceDll
+
+        # Create EWS object
+        $exchService = new-object Microsoft.Exchange.WebServices.Data.ExchangeService([Microsoft.Exchange.WebServices.Data.ExchangeVersion]::Exchange2013)
+
+        # Credentials
+        $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ExchangeUserName, $ExchangePassword
+        $exchService.Credentials = new-object Microsoft.Exchange.WebServices.Data.WebCredentials($cred)
+
+        # Set default Office 365 Url for Exchange Web Service if not specified
+        if ([string]::IsNullOrEmpty($ExchangeWebServiceUrl)){$ExchangeWebServiceUrl = "https://outlook.office365.com/EWS/Exchange.asmx"}
+        $exchService.Url= new-object Uri($ExchangeWebServiceUrl)
+
+        # setup extended property set
+        $CleanGlobalObjectId = new-object Microsoft.Exchange.WebServices.Data.ExtendedPropertyDefinition([Microsoft.Exchange.WebServices.Data.DefaultExtendedPropertySet]::Meeting, 0x23, [Microsoft.Exchange.WebServices.Data.MapiPropertyType]::Binary);
+        $psPropSet = new-object Microsoft.Exchange.WebServices.Data.PropertySet([Microsoft.Exchange.WebServices.Data.BasePropertySet]::FirstClassProperties);
+        $psPropSet.Add($CleanGlobalObjectId);
+
+        # Bind to the Calendar folder  
+        # $folderid generates a true
+        $folderid = new-object Microsoft.Exchange.WebServices.Data.FolderId([Microsoft.Exchange.WebServices.Data.WellKnownFolderName]::Calendar,$MailboxName)     
+        $Calendar = [Microsoft.Exchange.WebServices.Data.Folder]::Bind($exchService,$folderid)
+
+        # Find Item
+        $ivItemView = New-Object Microsoft.Exchange.WebServices.Data.ItemView(1) 
+        $sfSearchFilter = new-object Microsoft.Exchange.WebServices.Data.SearchFilter+IsEqualTo($CleanGlobalObjectId, $ExchangeMeetingId);
+        $fiResult = $Calendar.FindItems($sfSearchFilter, $ivItemView) 
+
+        # Returns Null if no meeting found with specified Id
+        if ($fiResult.TotalCount -eq 0){return $null}
+
+        foreach ($appointment in $fiResult) { 
             
             # Deletes meeting or cancel it depending of "-Delete" argument
             If ($Delete){
-                $a.Delete(0);
+                $appointment.Delete(0);
             }
             else {
-                $a.CancelMeeting() | Out-Null # Out-Null used here not to go into pipeline
+                $appointment.CancelMeeting() | Out-Null # Out-Null used here not to go into pipeline
             }
             
         }
