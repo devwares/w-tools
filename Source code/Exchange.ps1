@@ -1,5 +1,6 @@
 # SUGGESTION : function that creates Appointment object from existing Id
 # SUGGESTION : change Attachment parameter format to String
+# TODO : Write documentation
 
 function Send-ExchangeMail
 {
@@ -12,7 +13,7 @@ function Send-ExchangeMail
         [parameter(Mandatory=$True)][string] $ExchangeMailTo,
         [parameter(Mandatory=$True)][string] $ExchangeMailTitle,
         [parameter(Mandatory=$True)][string] $ExchangeMailBody,
-        [parameter(Mandatory=$False)][array] $AttachementsList
+        [parameter(Mandatory=$False)][array] $AttachmentsList
     )
 
     # Load Exchange Web Services Managed API
@@ -34,7 +35,7 @@ function New-ExchangeMeeting
         [parameter(Mandatory=$True)][string] $ExchangeMeetingEndDate,
         [parameter(Mandatory=$True)][string] $ExchangeRequiredAttendees,
         [parameter(Mandatory=$False)][string] $ExchangeOptionalAttendees,
-        [parameter(Mandatory=$False)][array] $ExchangeAttachementsList
+        [parameter(Mandatory=$False)][string] $ExchangeAttachments
     )
 
     Try {
@@ -88,8 +89,9 @@ function New-ExchangeMeeting
             }
 
         # Add attachment(s) if specified
-        If ($ExchangeAttachementsList){
-            ForEach ($file in $ExchangeAttachementsList){
+        If ($ExchangeAttachments){
+            $ExchangeAttachmentsList = $ExchangeAttachments.Split(";")
+            ForEach ($file in $ExchangeAttachmentsList){
                 $appointment.Attachments.AddFileAttachment($file) | Out-Null ; # Out-Null used here not to go into pipeline
             }
         }
@@ -134,7 +136,7 @@ function Edit-ExchangeMeeting
         [parameter(Mandatory=$False)][string] $ExchangeMeetingEndDate,
         [parameter(Mandatory=$False)][string] $ExchangeRequiredAttendees,
         [parameter(Mandatory=$False)][string] $ExchangeOptionalAttendees,
-        [parameter(Mandatory=$False)][array] $ExchangeAttachementsList,
+        [parameter(Mandatory=$False)][array] $ExchangeAttachments,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingId
     )
 
@@ -177,14 +179,15 @@ function Edit-ExchangeMeeting
 
         ForEach ($appointment in $fiResult) { 
 
-            # Update attachements if specified
-            If ($ExchangeAttachementsList){
+            # Update Attachments if specified
+            If ($ExchangeAttachments){
+                $ExchangeAttachmentsList = $ExchangeAttachments.Split(";")
                 # Clear attachments collection
                 $appointment.Attachments.Clear()
                 # Save updated meeting without sending updates to attendees, to clear old attachments
                 $appointment.Update([Microsoft.Exchange.WebServices.Data.ConflictResolutionMode]::AutoResolve, $True)
                 # Add new attachment(s)
-                ForEach ($file in $ExchangeAttachementsList){
+                ForEach ($file in $ExchangeAttachmentsList){
                     $appointment.Attachments.AddFileAttachment($file);
                 }
             }
@@ -240,8 +243,6 @@ function Edit-ExchangeMeeting
             }
 
             # Save updated meeting and send notification to all attendees
-            # debug : clear()
-            $appointment.Attachments.Clear()
             $appointment.Update([Microsoft.Exchange.WebServices.Data.SendInvitationsMode]::SendToAllAndSaveCopy)
 
         }
