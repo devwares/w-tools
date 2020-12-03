@@ -79,7 +79,6 @@ function Send-ExchangeMail
 
 # TODO : fix return string
 # TODO : isteams
-# TODO : attachements
 function New-ExchangeMeeting
 {
     Param(
@@ -128,7 +127,7 @@ function New-ExchangeMeeting
         $MeetingStartDatetime=[System.DateTime]::ParseExact($ExchangeMeetingStartDate,'yyyyMMddHHmm',$null)
         $MeetingEndDatetime=[System.DateTime]::ParseExact($ExchangeMeetingEndDate,'yyyyMMddHHmm',$null)
 
-        # Create Appointment
+        # Create Appointment object
         $appointment = New-Object Microsoft.Exchange.WebServices.Data.Appointment -ArgumentList $exchService
             $appointment.Subject = $MeetingSubject
             $appointment.Body = $MeetingBody
@@ -142,44 +141,46 @@ function New-ExchangeMeeting
             }
         }
 
+        #$appointment.conferencetype = 2
+        # retrouver la valeur de conferencetype pour un rendez-vous teams créé, avec son ID 
+        # ex : 040000008200E00074C5B7101A82E0080000000064701EB606C8D601000000000000000010000000B27DED920EA4D34D983AAA3EA6A103A8
+
+
         $RequiredAttendees = $row.advisorEmail;
         if($RequiredAttendees) {$RequiredAttendees | %{[void]$appointment.RequiredAttendees.Add($_)}}
 
         $appointment.Save([Microsoft.Exchange.WebServices.Data.SendInvitationsMode]::SendToAllAndSaveCopy)
-                    
+                 
         # Set the unique id for the appointment and convert to text
             $appointment.Load($psPropSet);
             $CalIdVal = $null;
             $appointment.TryGetProperty($CleanGlobalObjectId, [ref]$CalIdVal);
             $CalIdVal64 = [Convert]::ToBase64String($CalIdVal)
 
+            # debug           
+            $appointment | Export-Csv -Path 'c:\0\tmp\test.csv' -Delimiter ";"
+
         }
 
     Catch{
-
         Write-Error "Meeting was not created --> $($_.Exception.Message)" -ErrorAction:Continue
         return $null
-
     }
 
     # Return Unique id for created meeting
-    return [string]$CalIdVal
+    return [string]$CalIdVal64
 
 }
 
 function Edit-ExchangeMeeting
 {
+
     Param(
-        [parameter(Mandatory=$True)][string] $ExchangeServerName,
-        [parameter(Mandatory=$True)][string] $ExchangeServerPort,
+        [parameter(Mandatory=$False)][string] $ExchangeWebServiceUrl,
+        [parameter(Mandatory=$False)][string] $ExchangeWebServiceDll,
         [parameter(Mandatory=$True)][string] $ExchangeUserName,
         [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
-        [parameter(Mandatory=$True)][string] $ExchangeMeetingId,
-        [parameter(Mandatory=$True)][string] $ExchangeMeetingTitle,
-        [parameter(Mandatory=$True)][string] $ExchangeMeetingBody,
-        [parameter(Mandatory=$True)][string] $ExchangeMeetingTime,
-        [parameter(Mandatory=$True)][bool] $ExchangeMeetingIsTeams,
-        [parameter(Mandatory=$False)][array] $ExchangeAttachementsList
+        [parameter(Mandatory=$True)][string] $ExchangeMeetingId
     )
 
     # MeetingId if modified, else null
@@ -190,14 +191,58 @@ function Edit-ExchangeMeeting
 function Remove-ExchangeMeeting
 {
     Param(
-        [parameter(Mandatory=$True)][string] $ExchangeServerName,
-        [parameter(Mandatory=$True)][string] $ExchangeServerPort,
+        [parameter(Mandatory=$False)][string] $ExchangeWebServiceUrl,
+        [parameter(Mandatory=$False)][string] $ExchangeWebServiceDll,
         [parameter(Mandatory=$True)][string] $ExchangeUserName,
         [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingId
     )
 
-    # MeetingId if modified, else null
-    $ExchangeMeetingState = $null
+    Try{
+
+        # Set default path to Dll if not specified
+        if ([string]::IsNullOrEmpty($ExchangeWebServiceDll)){$ExchangeWebServiceDll = 'C:\Program Files\Microsoft\Exchange\Web Services\2.2\Microsoft.Exchange.WebServices.dll'}
+        
+        # Load Exchange Web Services API
+        Import-Module $ExchangeWebServiceDll
+
+        # Create EWS object
+        $exchService = new-object Microsoft.Exchange.WebServices.Data.ExchangeService([Microsoft.Exchange.WebServices.Data.ExchangeVersion]::Exchange2010)
+
+        # Credentials
+        $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ExchangeUserName, $ExchangePassword
+        $exchService.Credentials = new-object Microsoft.Exchange.WebServices.Data.WebCredentials($cred)
+
+        # Set default Office 365 Url for Exchange Web Service if not specified
+        if ([string]::IsNullOrEmpty($ExchangeWebServiceUrl)){$ExchangeWebServiceUrl = "https://outlook.office365.com/EWS/Exchange.asmx"}
+        $exchService.Url= new-object Uri($ExchangeWebServiceUrl)
+
+        # setup extended property set
+        $CleanGlobalObjectId = new-object Microsoft.Exchange.WebServices.Data.ExtendedPropertyDefinition([Microsoft.Exchange.WebServices.Data.DefaultExtendedPropertySet]::Meeting, 0x23, [Microsoft.Exchange.WebServices.Data.MapiPropertyType]::Binary);
+        $psPropSet = new-object Microsoft.Exchange.WebServices.Data.PropertySet([Microsoft.Exchange.WebServices.Data.BasePropertySet]::FirstClassProperties);
+        $psPropSet.Add($CleanGlobalObjectId);
+
+        # Bind to the Calendar folder  
+        # $folderid generates a true
+        $folderid = new-object Microsoft.Exchange.WebServices.Data.FolderId([Microsoft.Exchange.WebServices.Data.WellKnownFolderName]::Calendar,$MailboxName)     
+        $Calendar = [Microsoft.Exchange.WebServices.Data.Folder]::Bind($exchService,$folderid)
+
+        # Find Item
+        $ivItemView = New-Object Microsoft.Exchange.WebServices.Data.ItemView(1) 
+        $sfSearchFilter = new-object Microsoft.Exchange.WebServices.Data.SearchFilter+IsEqualTo($CleanGlobalObjectId, $ExchangeMeetingId);
+        $fiResult = $Calendar.FindItems($sfSearchFilter, $ivItemView) 
+
+        foreach ($a in $fiResult) { 
+            $a.Delete(0);
+            # record cancellation in the data source            
+        }
+
+    }
+
+    Catch{
+        Write-Error "Error during meeting deletion --> $($_.Exception.Message)" -ErrorAction:Continue
+        return $null
+    }
+
     return $ExchangeMeetingState
 }

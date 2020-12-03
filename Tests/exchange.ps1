@@ -44,3 +44,18 @@ Function Test-New-ExchangeMeeting()
     $MeetingId = New-ExchangeMeeting -ExchangeUserName $username -ExchangePassword $password -ExchangeMeetingTitle $title -ExchangeMeetingBody $body -ExchangeMeetingStartDate $start -ExchangeMeetingEndDate $end -ExchangeMeetingIsTeams $teams -ExchangeAttachementsList $filelist
 
 }
+
+Function Test-Remove-ExchangeMeeting()
+{
+    $username = "creator@domain.com"
+    $password = Read-Host "Enter password of $username" -AsSecureString
+    $ewsurl = "https://outlook.office365.com/EWS/Exchange.asmx"
+    $meetingid = "BAAAAIIA4AB0xbcQGoLgCAAAAAAp1gKGUsnWAQAAAAAAAAAAEAAAAHlrfMPoxtBGv8a7N7md0Zk="
+
+    # Delete Exchange meeting by Id
+    $MeetingState = Remove-ExchangeMeeting -ExchangeUserName $username -ExchangePassword $password -ExchangeMeetingId $meetingid
+
+    # Delete Exchange meeting by Id for custom Exchange server
+    $MeetingState = Remove-ExchangeMeeting -ExchangeUserName $username -ExchangePassword $password -ExchangeMeetingId $meetingid -ExchangeWebServiceUrl $ewsurl
+
+}
