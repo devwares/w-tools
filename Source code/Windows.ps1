@@ -1,10 +1,62 @@
 ﻿# TODO : write documentation
+# SUGGESTION : create a separate function to test tcp connections
+
 function Enable-Proxy {
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -name ProxyEnable -Value 1
+
+    param
+    (
+        [Parameter(Mandatory=$false)][String]$Scope    
+    )
+
+    # Set scope (User if not specified)
+    If ([string]::IsNullOrEmpty($Scope)){
+        $RegistryScope = "HKCU"
+    }
+    Else {
+        $RegistryScope = Switch ($Scope.ToLower()) {
+            "user" {"HKCU"; break}
+            "machine" {"HKLM"; break}
+            default {"UNKNOWN"; break}
+            }
+    }
+    If ($RegistryScope -eq "UNKNOWN") {
+        Write-Error "Unknown scope : $Scope" -ErrorAction:Continue
+        return $False
+    }
+    $RegistryPath = $RegistryScope + ':\Software\Microsoft\Windows\CurrentVersion\Internet Settings'
+
+    # Enable proxy
+    Set-ItemProperty -Path $RegistryPath -name ProxyEnable -Value 1
+
 }
 
 function Disable-Proxy {
-    Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -name ProxyEnable -Value 0
+
+    param
+    (
+        [Parameter(Mandatory=$false)][String]$Scope
+    )
+
+    # Set scope (User if not specified)
+    If ([string]::IsNullOrEmpty($Scope)){
+        $RegistryScope = "HKCU"
+    }
+    Else {
+        $RegistryScope = Switch ($Scope.ToLower()) {
+            "user" {"HKCU"; break}
+            "machine" {"HKLM"; break}
+            default {"UNKNOWN"; break}
+            }
+    }
+    If ($RegistryScope -eq "UNKNOWN") {
+        Write-Error "Unknown scope : $Scope" -ErrorAction:Continue
+        return $False            
+    }
+    $RegistryPath = $RegistryScope + ':\Software\Microsoft\Windows\CurrentVersion\Internet Settings'
+
+    # Disable proxy
+    Set-ItemProperty -Path $RegistryPath -name ProxyEnable -Value 0
+
 }
 
 function Connect-ToProxy {
@@ -45,32 +97,58 @@ function Connect-ToProxy {
 
 }
 
-# SUGGESTION : add "-scope" option to set either system-wide proxy or user proxy
 function Set-Proxy {
 
     param
     (
-            [Parameter(Mandatory=$true)][string]$ProxyServerName,
-            [Parameter(Mandatory=$true)][int32]$ProxyServerPort,
-            [Parameter(Mandatory=$false)][bool]$ProxyDisable,
-            [Parameter(Mandatory=$false)][bool]$ProxyTestConnection
+            [Parameter(Mandatory=$true,ParameterSetName='fill')][string]$ProxyServerName,
+            [Parameter(Mandatory=$true,ParameterSetName='fill')][int32]$ProxyServerPort,
+            [Parameter(Mandatory=$false,ParameterSetName='fill')][bool]$ProxyDisable,
+            [Parameter(Mandatory=$false,ParameterSetName='reset')][bool]$Reset,
+            [Parameter(Mandatory=$false,ParameterSetName='fill')][bool]$ProxyTestConnection,
+            [Parameter(Mandatory=$false)][string]$Scope
     )
-
+ 
     Try{
 
-        # Perform a connection test if specified
-        If ($ProxyTestConnection){
-            If (!(Test-NetConnection -ComputerName $ProxyServerName -Port $ProxyServerPort).TcpTestSucceeded) {
-                Write-Error -Message "Invalid proxy server address or port:  $($ProxyServerName):$($ProxyServerPort)"
-                return $False
+
+        If ($Reset){
+            $ProxyServerValue = ""
+            $ProxyDisable = $true
+        }
+        else {
+            $ProxyServerValue = "$($ProxyServerName):$($ProxyServerPort)"
+            # Perform a connection test if specified
+            If ($ProxyTestConnection){
+                If (!(Test-NetConnection -ComputerName $ProxyServerName -Port $ProxyServerPort).TcpTestSucceeded) {
+                    Write-Error -Message "Invalid proxy server address or port:  $($ProxyServerName):$($ProxyServerPort)"
+                    return $False
+                }
             }
+        }
+    
+        # Set scope (User if not specified)
+        If ([string]::IsNullOrEmpty($Scope)){
+            $RegistryScope = "HKCU"
+        }
+        Else {
+            $RegistryScope = Switch ($Scope.ToLower()) {
+                "user" {"HKCU"; break}
+                "machine" {"HKLM"; break}
+                default {"UNKNOWN"; break}
+                }
+        }
+        If ($RegistryScope -eq "UNKNOWN") {
+            Write-Error "Unknown scope : $Scope" -ErrorAction:Continue
+            return $False            
         }
 
         # Set proxy
-        Set-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -name ProxyServer -Value "$($ProxyServerName):$($ProxyServerPort)"
+        $RegistryPath = $RegistryScope + ':\Software\Microsoft\Windows\CurrentVersion\Internet Settings'
+        Set-ItemProperty -Path $RegistryPath -name ProxyServer -Value $ProxyServerValue
 
         # Enable proxy unless Disabled specified
-        if ($ProxyDisable) {Disable-Proxy} else {Enable-Proxy}
+        If ($ProxyDisable) {Disable-Proxy -Scope $Scope} else {Enable-Proxy -Scope $Scope}
 
     }
     catch
