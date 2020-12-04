@@ -3,7 +3,7 @@ Function Test-Send-SimpleMail()
 {
     $username = 'sender@domain.com'
     $password = Read-Host "Enter password of $username" -AsSecureString
-    $to = 'destination@domain.com'
+    $to = 'joe@domain.com', "john@domain.net"
     $subject = 'Test Mail'
     $body = 'This is for testing purposes'
     $server = 'smtp.office365.com'

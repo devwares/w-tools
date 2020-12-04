@@ -7,7 +7,7 @@ function Send-SimpleMail
         [parameter(Mandatory=$False)][bool] $ServerUseSsl,
         [parameter(Mandatory=$True)][string] $UserName,
         [parameter(Mandatory=$True)][SecureString] $Password,
-        [parameter(Mandatory=$True)][string] $MailTo,
+        [parameter(Mandatory=$True)][array] $MailTo,
         [parameter(Mandatory=$True)][string] $MailTitle,
         [parameter(Mandatory=$True)][string] $MailBody,
         [parameter(Mandatory=$False)][bool] $BodyAsHtml,
