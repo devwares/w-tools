@@ -9,7 +9,7 @@ if "%1"=="0" goto set
 goto wrong
 
 :set
-C:\Windows\System32\cmd.exe /k %windir%\System32\reg.exe ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /t REG_DWORD /d %1 /f
+%windir%\System32\reg.exe ADD HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /t REG_DWORD /d %1 /f
 goto end
 
 :missing
