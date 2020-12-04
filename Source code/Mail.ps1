@@ -11,7 +11,7 @@ function Send-SimpleMail
         [parameter(Mandatory=$True)][string] $MailTitle,
         [parameter(Mandatory=$True)][string] $MailBody,
         [parameter(Mandatory=$False)][bool] $BodyAsHtml,
-        [parameter(Mandatory=$False)][array] $AttachementsList
+        [parameter(Mandatory=$False)][array] $AttachmentsList
     )
 
     # Set Office 365 default values for SMTP server if not specified
@@ -28,22 +28,22 @@ function Send-SimpleMail
     # Prepare Hash content
     $MailParameters = @{
 
-    To = $MailTo
-    From = $UserName
-    Subject = $MailTitle
-    Body = $MailBody
-    BodyAsHtml = $BodyAsHtml
-    SmtpServer = $ServerName
-    UseSSL = $ServerUseSsl
-    Credential = $cred
-    Port = $ServerPort
+        To = $MailTo
+        From = $UserName
+        Subject = $MailTitle
+        Body = $MailBody
+        BodyAsHtml = $BodyAsHtml
+        SmtpServer = $ServerName
+        UseSSL = $ServerUseSsl
+        Credential = $cred
+        Port = $ServerPort
 
     }
  
     # Send mail using hash content
     try{
         if (!$AttachementsList){Send-MailMessage @MailParameters -ErrorAction Stop}
-        else {Send-MailMessage @MailParameters -Attachments $AttachementsList -ErrorAction Stop}
+        else {Send-MailMessage @MailParameters -Attachments $AttachmentsList -ErrorAction Stop}
     }
     catch {
         Write-Error "Mail was not sent --> $($_.Exception.Message)" -ErrorAction:Continue

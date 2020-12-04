@@ -10,8 +10,8 @@ Function Test-Send-SimpleMail()
     $port = 587
     $filelist =@("C:\temp\file1.txt","C:\temp\file2.txt")
 
-    # Send mail with default server parameters, without attachment
-    $return = Send-SimpleMail -UserName $username -Password $password -MailTo $to -MailTitle $subject -MailBody $body
+    # Send mail to single user, with default server parameters, without attachment
+    $return = Send-SimpleMail -UserName $username -Password $password -MailTo "john@domain.org" -MailTitle $subject -MailBody $body
     
     # Send mail with default server parameters, with files attached
     $return = Send-SimpleMail -UserName $username -Password $password -MailTo $to -MailTitle $subject -MailBody $body -AttachementsList $filelist
