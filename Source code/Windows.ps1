@@ -160,16 +160,16 @@ function Set-Proxy {
 }
 
 # SUGGESTION : AzureAD login
-function Invoke-PsScriptAs {
+function Invoke-PsCommandAs {
 
     param
     (
             [Parameter(Mandatory=$true)][string]$WindowsUserName,
             [Parameter(Mandatory=$true)][securestring]$WindowsUserPassword,
-            [Parameter(Mandatory=$true, ValueFromPipeline = $true)][string]$ScriptFullPath
+            [Parameter(Mandatory=$true, ValueFromPipeline = $true)][string]$PsCommand
     )
 
     $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $WindowsUserName, $WindowsUserPassword
-    Start-Process -credential $Cred -ArgumentList "$ScriptFullPath" Powershell
+    Start-Process -credential $Cred -ArgumentList $PsCommand Powershell
 
 }
