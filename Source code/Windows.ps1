@@ -196,3 +196,43 @@ function Invoke-PsCommandAs {
     Start-Process Powershell -ArgumentList $PsFinalCommand -NoNewWindow -credential $Cred 
 
 }
+
+function Set-EncapsulationContextPolicy
+{
+    REG ADD HKLM\SYSTEM\CurrentControlSet\Services\PolicyAgent /v AssumeUDPEncapsulationContextOnSendRule /t REG_DWORD /d 0x2 /f
+}
+
+function New-L2tpPskVpn
+{
+    param (
+        [Parameter(Mandatory=$true)][string]$VpnConName, 
+        [Parameter(Mandatory=$true)][string]$VpnServerAddress,    
+        [Parameter(Mandatory=$true)][string]$PreSharedKey,
+        [Parameter(Mandatory=$false)][PSCustomObject]$DestinationNetworks # if specified, do not route all traffic through VPN
+    )
+
+    $VpnConExists = Get-VpnConnection -Name $VpnConName -ErrorAction Ignore
+    if ($VpnConExists) {
+        # Remove old connection if exists
+        Remove-VpnConnection -Name $VpnConName -Force -PassThru
+    }
+
+    # Disable persistent command history
+    Set-PSReadlineOption -HistorySaveStyle SaveNothing
+    # Create VPN connection
+    Add-VpnConnection -Name $VpnConName -ServerAddress $VpnServerAddress -L2tpPsk $PreSharedKey -TunnelType L2tp -EncryptionLevel Required -AuthenticationMethod Chap,MSChapv2 -Force -RememberCredential -PassThru
+    # Ignore the data encryption warning (data is encrypted in the IPsec tunnel)
+
+    if ($DestinationNetworks)
+    {
+        # Remove default gateway
+        Set-VpnConnection -Name $VpnConName -SplitTunneling $True
+        foreach ($DestinationNetwork in $DestinationNetworks)
+        {
+            # Add route after successul connection
+            $RouteToAdd = $DestinationNetwork.Address + '/' + $DestinationNetwork.NetMask
+            Add-VpnConnectionRoute -ConnectionName $VpnConName -DestinationPrefix $RouteToAdd
+        }
+    }
+
+}
