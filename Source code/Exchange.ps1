@@ -58,7 +58,9 @@ function Send-ExchangeMail
         }
 
         # Add each specified recipient
-        ForEach ($Recipient in $ExchangeMailTo)
+        # Split attachment string into array
+        $ExchangeMailToList = $ExchangeMailTo.Split(";");
+        ForEach ($Recipient in $ExchangeMailToList)
         {
             $message.ToRecipients.Add($Recipient) | Out-Null # Out-Null used here not to go into pipeline
         }
