@@ -1,22 +1,30 @@
-﻿Function Test-Send-SimpleMail()
+﻿Function Test-Send-ExchangeMail()
 {
-    $username = 'sender@domain.com'
-    $password = Read-Host "Enter password of $username" -AsSecureString
-    $to = 'destination@domain.com'
-    $subject = 'Test Mail'
-    $body = 'This is for testing purposes'
-    $server = 'smtp.office365.com'
-    $port = 587
-    $filelist =@("C:\temp\file1.txt","C:\temp\file2.txt")
 
-    # Send mail with default server parameters, without attachment
-    $return = Send-SimpleMail -UserName $username -Password $password -MailTo $to -MailTitle $subject -MailBody $body
-    
-    # Send mail with default server parameters, with files attached
-    $return = Send-SimpleMail -UserName $username -Password $password -MailTo $to -MailTitle $subject -MailBody $body -AttachementsList $filelist
+    $mailto = "john@domain.net"
+    $subject = "Test mail"
+    $mailbody= "This is a test mail"
+    $filelist = "C:\temp\file1.txt;C:\temp\file2.txt"
+   
+    $username = "joe@domain.com"
 
-    # Send mail with custom server parameters
-    $return = Send-SimpleMail -ServerName $server -ServerPort $port -UserName $username -Password $password -MailTo $to -MailTitle $subject -MailBody $body
+    # Method 1 : direct input
+    $SecurePassword = Read-Host -AsSecureString
+
+    # Method 2 : plain text (not recommended)
+    #$Password = "mypassword"
+    #$SecurePassword = ($Password | ConvertTo-SecureString -asPlainText -Force)
+
+    # Method 3 : encrypted key (preferred)
+    #$key = Get-Content $config.'Send-ExchangeMail'.Encrypted-Keyfile
+    #$encpassword = $config.'Send-ExchangeMail'.Encrypted-Password
+    #$SecurePassword = $encpassword | ConvertTo-SecureString -Key $key
+
+    # Send Exchange mail without attachments
+    $Return = Send-ExchangeMail -ExchangeUserName $username -ExchangePassword $SecurePassword -ExchangeMailTo $mailto -ExchangeMailTitle $subject -ExchangeMailBody $mailbody
+
+    # Send Exchange mail with attachments
+    $Return = Send-ExchangeMail -ExchangeAttachments $filelist -ExchangeUserName $username -ExchangePassword $SecurePassword -ExchangeMailTo $mailto -ExchangeMailTitle $subject -ExchangeMailBody $mailbody
 
 }
 
