@@ -159,17 +159,40 @@ function Set-Proxy {
 
 }
 
-# SUGGESTION : AzureAD login
 function Invoke-PsCommandAs {
 
     param
     (
             [Parameter(Mandatory=$true)][string]$WindowsUserName,
             [Parameter(Mandatory=$true)][securestring]$WindowsUserPassword,
-            [Parameter(Mandatory=$true, ValueFromPipeline = $true)][string]$PsCommand
+            [Parameter(Mandatory=$true, ValueFromPipeline = $true)][string]$PsCommand,
+            [Parameter(Mandatory=$false)][string]$ImportModules
     )
 
+    # Credentials
     $Cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $WindowsUserName, $WindowsUserPassword
-    Start-Process -credential $Cred -ArgumentList $PsCommand Powershell
+
+    # Modules to import if specified
+    If (-not [string]::IsNullOrEmpty($ImportModules)){
+
+        $PSImportModuleCommand = ""
+        $ImportModulesList = $ImportModules.Split(";");
+
+        ForEach ($Module in $ImportModulesList)
+        {
+            $PSImportModuleCommand = $PSImportModuleCommand + "Import-Module `'$Module`'" + ";"
+        }
+
+        $PsFinalCommand = $PSImportModuleCommand + $PsCommand
+
+    }
+    Else
+    {
+        $PsFinalCommand = $PsCommand
+    }
+    
+
+    # Run Import-Module + Parameter command
+    Start-Process Powershell -ArgumentList $PsFinalCommand -NoNewWindow -credential $Cred 
 
 }
