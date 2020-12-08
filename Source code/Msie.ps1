@@ -14,7 +14,4 @@ function Enable-InternetExplorerESC {
     Stop-Process -Name Explorer
     Write-Host "IE Enhanced Security Configuration (ESC) has been enabled." -ForegroundColor Green
 }
-function Disable-UserAccessControl {
-    Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ConsentPromptBehaviorAdmin" -Value 00000000 -Force
-    Write-Host "User Access Control (UAC) has been disabled." -ForegroundColor Green    
-}
+

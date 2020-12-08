@@ -1,7 +1,7 @@
 ﻿#Load SharePoint CSOM Assemblies
 Add-Type -Path "C:\Program Files\Common Files\Microsoft Shared\Web Server Extensions\16\ISAPI\Microsoft.SharePoint.Client.dll"
 Add-Type -Path "C:\Program Files\Common Files\Microsoft Shared\Web Server Extensions\16\ISAPI\Microsoft.SharePoint.Client.Runtime.dll"
-Function Download-FileFromLibrary()
+Function Get-FileFromLibrary()
 { 
     param
     (
@@ -24,7 +24,7 @@ Function Download-FileFromLibrary()
         write-host -f Red "Error Downloading File!" $_.Exception.Message
     }
 }
-Function Upload-FileToLibrary()
+Function Send-FileToLibrary()
 { 
     param
     (
@@ -78,7 +78,7 @@ Function Upload-FileToLibrary()
     }
 
 }
-Function Upload-AllFilesFromDirectory()
+Function Send-AllFilesFromDirectory()
 { 
     param
     (

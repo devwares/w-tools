@@ -4,7 +4,7 @@ function Get-RandomCharacters($length, $characters) {
     return [String]$characters[$random]
 }
 
-function Scramble-String([string]$inputString){     
+function Switch-Characters([string]$inputString){     
     $characterArray = $inputString.ToCharArray()   
     $scrambledStringArray = $characterArray | Get-Random -Count $characterArray.Length     
     $outputString = -join $scrambledStringArray

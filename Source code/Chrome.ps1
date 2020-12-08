@@ -1,5 +1,5 @@
 ﻿
-function InstallChrome {
+function Install-Chrome {
     Param(
         [parameter(Mandatory=$True)][string] $TempDir
     )    
