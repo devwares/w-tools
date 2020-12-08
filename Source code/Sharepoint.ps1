@@ -179,7 +179,7 @@ Function Get-AllFilesFromDirectory()
             }
         }
 
-        return $SPFileListFromFolder
+        Return $SPFileListFromFolder
 
     }
 
@@ -191,14 +191,16 @@ Function Get-AllFilesFromDirectory()
 
     #Call the function to get Files of the Root Folder or specified Folder
     if ([string]::IsNullOrEmpty($DirectoryName)){
-        Get-AllFilesFromFolder -Folder $Library.RootFolder -Recursive $Recursive
+        $AllFilesFromDirectory = Get-AllFilesFromFolder -Folder $Library.RootFolder -Recursive $Recursive
     }
     else{
         $ServerRelativeUrlOfRootFolder = $Library.RootFolder.ServerRelativeUrl
         $TargetFolderUrl=  $ServerRelativeUrlOfRootFolder + "/" + $DirectoryName
         $TargetFolder = $SPContext.Web.GetFolderByServerRelativeUrl($TargetFolderUrl)
-        Get-AllFilesFromFolder -Folder $TargetFolder -Recursive $Recursive
+        $AllFilesFromDirectory = Get-AllFilesFromFolder -Folder $TargetFolder -Recursive $Recursive
     }
+
+    Return $AllFilesFromDirectory | select-object Name, ServerRelativeUrl, Length, TimeCreated, TimeLastModified, ContentTag, Etag, IrmEnabled, MajorVersion, MinorVersion, UIVersion, UIVersionLabel 
 
 }
 
