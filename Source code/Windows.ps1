@@ -236,3 +236,37 @@ function New-L2tpPskVpn
     }
 
 }
+
+Function Get-EmptyFiles
+{
+
+    param
+    (
+        [Parameter(Mandatory=$true)] [string] $Path
+    )
+
+    # Initialize
+    $report = @()
+
+    # List directory
+    Try {
+        Get-Childitem -Path $Path -Recurse | foreach-object {
+            if(!$_.PSIsContainer -and $_.length -eq 0) {
+                # Get properties
+                $file = "" | Select-Object Name,FullName
+                $file.Name=$_.Name
+                $file.FullName=$_.FullName
+                # Append
+                $report+=$file
+            }
+        }
+    }
+    Catch
+    {
+        write-host -f Red "Error listing directory $Path -->" $_.Exception.Message
+        return $false
+    }
+
+    return $report
+
+}

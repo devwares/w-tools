@@ -193,3 +193,26 @@
     return $report
 
 }
+
+Function Start-AzureVm()
+{ 
+    param
+    (
+        [Parameter(Mandatory=$true)] [string] $VmName,
+        [Parameter(Mandatory=$true)] [string] $ResGroupeName,
+        [Parameter(Mandatory=$true)] [string] $Tenant,
+        [Parameter(Mandatory=$true)] [string] $User,
+        [Parameter(Mandatory=$true)] [Security.SecureString] $Password
+    )
+ 
+    Try {
+
+        $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $User, $Password
+        Connect-AzAccount -Credential $Credential -Tenant $Tenant
+        Start-AzVM -ResourceGroupName $ResGroupeName -Name $VmName
+
+  }
+    Catch {
+        write-host -f Red "Error starting Vm -->" $_.Exception.Message
+    }
+}

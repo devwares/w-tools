@@ -53,3 +53,11 @@ function Send-SimpleMail
     return $True
 
 }
+
+function Confirm-EmailAddress
+{
+    param([string]$address)
+    # Return True if address format is valid, False if address is malformed
+    ($address -as [System.Net.Mail.MailAddress]).Address `
+        -eq $address -and $address -ne $null
+}
