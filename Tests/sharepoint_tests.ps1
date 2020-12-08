@@ -1,5 +1,6 @@
 Function Test-Get-FileFromLibrary()
 {
+
 	# 1) $sourcefile and $targetfile names without spaces and special characters
 	# 2) $sourcefile et $targetfile names WITH spaces and special characters
 	# 3) $sourcefile on a network share
@@ -45,10 +46,30 @@ Function Test-Send-AllFilesFromDirectory()
 Function Test-Get-AllFilesFromDirectory()
 {
 
+    $siteurl = "https://contoso.sharepoint.com/personal/john_smith_contoso_com"
+    $user = "john.smith@contoso.com"
+    $password = Read-Host "Enter password of $user" -AsSecureString
+
+    $SPContext = Get-SPContext -SiteURL $siteurl -User $user -Password $password
+    $LibraryName = "Documents"
+    $DirectoryName = "compatibility"
+
+    # Get all files from directory
+    $filelist = Get-AllFilesFromDirectory -SPContext $SPContext -LibraryName $LibraryName -DirectoryName $DirectoryName
+
+    # Get all files from directory (recursively)
+    $filelist = Get-AllFilesFromDirectory -SPContext $SPContext -LibraryName $LibraryName -DirectoryName $DirectoryName -Recursive $True
+
+    # File all PDF files > 1MB from list
+    $filelist | select-object Name, Length, @{Label = 'UcName' ; Expression = {$_.Name.ToUpper()}} | Where-Object UcName -match ".PDF" | Where-Object Length -GT 1000000
+
 }
 Function Test-Get-SPContext
 {
-
+    $siteurl = "https://contoso.sharepoint.com/personal/john_smith_contoso_com"
+    $user = "john.smith@contoso.com"
+    $password = Read-Host "Enter password of $user" -AsSecureString
+    $SPContext = Get-SPContext -SiteURL $siteurl -User $user -Password $password
 }
 Function Test-Remove-SPFile()
 {
