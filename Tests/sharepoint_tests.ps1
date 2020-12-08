@@ -1,4 +1,4 @@
-Function Test-Download-FileFromLibrary()
+Function Test-Get-FileFromLibrary()
 {
 	# 1) $sourcefile and $targetfile names without spaces and special characters
 	# 2) $sourcefile et $targetfile names WITH spaces and special characters
@@ -30,15 +30,15 @@ Function Test-Download-FileFromLibrary()
     #$SecurePassword = $encpassword | ConvertTo-SecureString -Key $key
 
 	$SPContext = Get-SPContext -SiteURL $siteurl -User $user -Password $SecurePassword
-	Download-FileFromLibrary -SPContext $SPContext -SourceFile $sourcefile -TargetFile $targetfile
+	Get-FileFromLibrary -SPContext $SPContext -SourceFile $sourcefile -TargetFile $targetfile
 
 }
 
-Function Test-Upload-FileToLibrary()
+Function Test-Send-FileToLibrary()
 {
-	Upload-FileToLibrary  -SiteURL $SiteURL -DocLibName $DocLibName -User $User -Password $Password -SourceFile $SourceFile -TargetDirectory $TargetDirectory
+
 }
-Function Test-Upload-AllFilesFromDirectory()
+Function Test-Send-AllFilesFromDirectory()
 {
 
 }
