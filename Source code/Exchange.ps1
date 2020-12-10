@@ -1,6 +1,4 @@
 # SUGGESTION : function that creates Appointment object from existing Id
-# SUGGESTION : change Attachment parameter format to String
-# TODO : Write documentation
 
 function Send-ExchangeMail
 {
