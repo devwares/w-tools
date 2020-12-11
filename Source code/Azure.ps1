@@ -284,7 +284,7 @@ Function New-BlobContainer()
 }
 # SUGGESTION : add parameter to allow use of -UseConnectedAccount with New-AzStorageContext for OAuth (Azure AD)
 # SUGGESTION : ValueFromPipeline = $true for $SourceFile
-Function New-BlobContent()
+Function Set-BlobContent()
 {
 
     param
