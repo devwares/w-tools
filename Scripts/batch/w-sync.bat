@@ -50,7 +50,7 @@ REM Default value is the directory of this batch file
 REM *****************************************************
 SET SCRIPT_HOME=%~dp0
 SET CWOLDPATH=%PATH%
-CD /D %SCRIPT_HOME%..\..\Development tools\cygwin
+CD /D %SCRIPT_HOME%..\..\Libraries\cygwin
 SET CWRSYNCHOME=%CD%
 
 REM *****************************************************
