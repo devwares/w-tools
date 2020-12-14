@@ -199,7 +199,7 @@ Function Start-AzureVm()
     param
     (
         [Parameter(Mandatory=$true)] [string] $VmName,
-        [Parameter(Mandatory=$true)] [string] $ResGroupeName,
+        [Parameter(Mandatory=$true)] [string] $RegGroupName,
         [Parameter(Mandatory=$true)] [string] $Tenant,
         [Parameter(Mandatory=$true)] [string] $User,
         [Parameter(Mandatory=$true)] [Security.SecureString] $Password
@@ -209,10 +209,141 @@ Function Start-AzureVm()
 
         $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $User, $Password
         Connect-AzAccount -Credential $Credential -Tenant $Tenant
-        Start-AzVM -ResourceGroupName $ResGroupeName -Name $VmName
+        Start-AzVM -ResourceGroupName $RegGroupName -Name $VmName
 
   }
     Catch {
         write-host -f Red "Error starting Vm -->" $_.Exception.Message
     }
+}
+
+Function New-BlobContainer()
+{
+
+    param
+    (
+        [Parameter(Mandatory=$true)] [string] $Region,
+        [Parameter(Mandatory=$true)] [string] $ResGroupName,
+        [Parameter(Mandatory=$true)] [string] $StorageAccountName,
+        [Parameter(Mandatory=$true)] [string] $ContainerName
+    )
+
+    Import-Module Az.Accounts
+
+    Try{
+
+        # Create ResourceGroup name if doesn't exist
+        Get-AzResourceGroup -Name $ResGroupName -Location $Region -ErrorVariable notPresent -ErrorAction SilentlyContinue | Out-Null
+        if ($notPresent)
+        {
+            Write-Warning "Resource group $ResGroupName does not exist : creating"
+            New-AzResourceGroup -Name $ResGroupName -Location $Region
+        }
+        else
+        {
+            Write-Host "Found resource group : $ResGroupName"
+        }
+
+        # Create Storage Account if doesn't exist
+        $StorageAccount = Get-AzStorageAccount -ResourceGroupName $ResGroupName -Name $StorageAccountName -ErrorVariable notPresent -ErrorAction SilentlyContinue
+        if ($notPresent)
+        {
+            Write-Warning "Storage Account $StorageAccountName does not exist : creating"
+            $storageAccount = New-AzStorageAccount -ResourceGroupName $ResGroupName `
+            -Name $StorageAccountName `
+            -SkuName Standard_LRS `
+            -Location $Region
+        }
+        else
+        {
+            Write-Host "Found Storage Account : $StorageAccountName"
+        }
+
+        # Keep storage account Context for blob creation
+        $ctx = $storageAccount.Context
+
+        # Create Container if doesn't exist
+        $Container = Get-AzStorageContainer -Context $ctx -Name $ContainerName -ErrorVariable notPresent -ErrorAction SilentlyContinue
+        if ($notPresent)
+        {
+            $Container = New-AzStorageContainer -Context  $ctx -Name $ContainerName
+        }
+        else
+        {
+            Throw "Container already exists : $ContainerName"
+        }
+        
+    }
+    Catch{
+        Write-Error "Container not created --> $($_.Exception.Message)" -ErrorAction:Continue
+        return $False
+    }
+
+    Return $Container
+
+}
+# SUGGESTION : add parameter to allow use of -UseConnectedAccount with New-AzStorageContext for OAuth (Azure AD)
+# SUGGESTION : ValueFromPipeline = $true for $SourceFile
+Function Set-BlobContent()
+{
+
+    param
+    (
+        [Parameter(Mandatory=$true)] [string] $StorageAccountName,
+        [Parameter(Mandatory=$true)] [string] $StorageAccountKey,
+        [Parameter(Mandatory=$true)] [string] $ContainerName,
+        [Parameter(Mandatory=$true)] [string] $SourceFile,
+        [Parameter(Mandatory=$true)] [string] $BlobName
+    )
+
+    Import-Module Az.Accounts
+
+    Try{
+
+        # Get Context
+        $ctx = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $StorageAccountKey
+
+        # Upload
+        $Upload = Set-AzStorageBlobContent -Container $ContainerName -File $SourceFile -Blob $BlobName -Context $ctx -Force
+
+    }
+    Catch{
+        Write-Error "Blob not created --> $($_.Exception.Message)" -ErrorAction:Continue
+        return $False
+    }
+
+    Return $Upload
+
+}
+
+Function Get-BlobContent()
+{
+
+    param
+    (
+        [Parameter(Mandatory=$true)] [string] $StorageAccountName,
+        [Parameter(Mandatory=$true)] [string] $StorageAccountKey,
+        [Parameter(Mandatory=$true)] [string] $ContainerName,
+        [Parameter(Mandatory=$true)] [string] $BlobName,
+        [Parameter(Mandatory=$true)] [string] $DestinationFile
+    )
+
+    Import-Module Az.Accounts
+
+    Try{
+
+        # Get Context
+        $ctx = New-AzStorageContext -StorageAccountName $StorageAccountName -StorageAccountKey $StorageAccountKey
+
+        # Download
+        $Download = Get-AzStorageBlobContent -Container $ContainerName -Blob $BlobName -Destination $DestinationFile -Context $ctx -Force
+
+    }
+    Catch{
+        Write-Error "Blob not downloaded --> $($_.Exception.Message)" -ErrorAction:Continue
+        return $False
+    }
+
+    Return $Download
+
 }
