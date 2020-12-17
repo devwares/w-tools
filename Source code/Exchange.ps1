@@ -123,8 +123,8 @@ function New-ExchangeMeeting
         $Calendar = [Microsoft.Exchange.WebServices.Data.Folder]::Bind($exchService,$folderid)
 
         # Convert date strings to system.datetime
-        $MeetingStartDatetime=[System.DateTime]::ParseExact($ExchangeMeetingStartDate,'yyyyMMddHHmm',$null)
-        $MeetingEndDatetime=[System.DateTime]::ParseExact($ExchangeMeetingEndDate,'yyyyMMddHHmm',$null)
+        $MeetingStartDatetime=[System.DateTime]::ParseExact($ExchangeMeetingStartDate,'yyyy-MM-ddTHH:mm:ss',$null)
+        $MeetingEndDatetime=[System.DateTime]::ParseExact($ExchangeMeetingEndDate,'yyyy-MM-ddTHH:mm:ss',$null)
 
         # Split attendees strings
         if (-not [string]::IsNullOrEmpty($ExchangeRequiredAttendees)) {$ExchangeRequiredAttendeesList = $ExchangeRequiredAttendees.Split(";") }
@@ -284,7 +284,7 @@ function Edit-ExchangeMeeting
             # Update start date if specified
             If (-not [string]::IsNullOrEmpty($ExchangeMeetingStartDate)){
                 # Convert date strings to system.datetime
-                $MeetingStartDatetime=[System.DateTime]::ParseExact($ExchangeMeetingStartDate,'yyyyMMddHHmm',$null)
+                $MeetingStartDatetime=[System.DateTime]::ParseExact($ExchangeMeetingStartDate,'yyyy-MM-ddTHH:mm:ss',$null)
                 # Set meeting start date
                 $appointment.Start = $MeetingStartDatetime;
             }
@@ -292,7 +292,7 @@ function Edit-ExchangeMeeting
             # Update end date if specified
             If (-not [string]::IsNullOrEmpty($ExchangeMeetingEndDate)){
                 # Convert date strings to system.datetime
-                $MeetingEndDatetime=[System.DateTime]::ParseExact($ExchangeMeetingEndDate,'yyyyMMddHHmm',$null)
+                $MeetingEndDatetime=[System.DateTime]::ParseExact($ExchangeMeetingEndDate,'yyyy-MM-ddTHH:mm:ss',$null)
                 # Set meeting end date
                 $appointment.End = $MeetingEndDatetime;
             }
@@ -320,7 +320,7 @@ function Stop-ExchangeMeeting
         [parameter(Mandatory=$False)][string] $ExchangeWebServiceDll,
         [parameter(Mandatory=$True)][string] $ExchangeUserName,
         [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
-        [parameter(Mandatory=$False)][bool] $Delete,
+        [parameter(Mandatory=$False)][switch] $Delete,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingId
     )
 

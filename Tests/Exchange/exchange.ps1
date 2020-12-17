@@ -34,14 +34,15 @@ Function Test-New-ExchangeMeeting()
     $username = "creator@domain.com"
     $password = Read-Host "Enter password of $username" -AsSecureString
     $ewsurl = "https://outlook.office365.com/EWS/Exchange.asmx"
+    $attendees = "john@domain.com;joe@domain.com"
     $title = "Test Meeting" 
     $body = "Body of test Meeting"
-    $start = '202012031605'
-    $end = '202012031725'
+    $start = '2020-12-03T16:05:00' # yyyy-MM-ddTHH:mm:ss
+    $end = '2020-12-03T16:35:00' # yyyy-MM-ddTHH:mm:ss
     $filelist ="C:\temp\file1.txt;C:\temp\file2.txt"
 
     # Create simple Office 365 meeting, no Teams and no attachement
-    $MeetingId = New-ExchangeMeeting -ExchangeUserName $username -ExchangePassword $password -ExchangeMeetingTitle $title -ExchangeMeetingBody $body -ExchangeMeetingStartDate $start -ExchangeMeetingEndDate $end
+    $MeetingId = New-ExchangeMeeting -ExchangeUserName $username -ExchangePassword $password -ExchangeRequiredAttendees $attendees -ExchangeMeetingTitle $title -ExchangeMeetingBody $body -ExchangeMeetingStartDate $start -ExchangeMeetingEndDate $end
 
     # Create meeting for custom Exchange server, no Teams and no attachement
 
@@ -60,8 +61,8 @@ Function Test-Edit-ExchangeMeeting()
     $ewsurl = "https://outlook.office365.com/EWS/Exchange.asmx"
     $title = "Modified Test Meeting" 
     $body = "Body of modified test Meeting"
-    $start = '202012041715'
-    $end = '202012041840'
+    $start = '2020-12-04T17:15:00' # yyyy-MM-ddHH:mm:ss
+    $end = '2020-12-04T17:45:00' # yyyy-MM-ddHH:mm:ss
     $filelist ="C:\temp\file1.txt;C:\temp\file3.txt"
 
     # Create simple Office 365 meeting, no Teams and no attachement
@@ -85,9 +86,9 @@ Function Test-Remove-ExchangeMeeting()
     $meetingid = "BAAAAIIA4AB0xbcQGoLgCAAAAAAp1gKGUsnWAQAAAAAAAAAAEAAAAHlrfMPoxtBGv8a7N7md0Zk="
 	
     # Cancel Exchange meeting by Id
-    $MeetingState = Remove-ExchangeMeeting -ExchangeUserName $username -ExchangePassword $password -ExchangeMeetingId $meetingid
+    $MeetingState = Stop-ExchangeMeeting -ExchangeUserName $username -ExchangePassword $password -ExchangeMeetingId $meetingid
 
     # Delete Exchange meeting by Id
-    $MeetingState = Remove-ExchangeMeeting -Delete $True -ExchangeUserName $username -ExchangePassword $password -ExchangeMeetingId $meetingid
+    $MeetingState = Stop-ExchangeMeeting -Delete -ExchangeUserName $username -ExchangePassword $password -ExchangeMeetingId $meetingid
 
 }
