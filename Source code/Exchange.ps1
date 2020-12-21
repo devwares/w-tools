@@ -75,18 +75,21 @@ function Send-ExchangeMail
 
         # Add each specified "Cc" recipient
         # Split attachment string into array
-        $ExchangeMailCcList = $ExchangeMailCc.Split(";");
-        ForEach ($Recipient in $ExchangeMailCcList)
-        {
-            $message.CcRecipients.Add($Recipient) | Out-Null # Out-Null used here not to go into pipeline
+        if (![string]::IsNullOrEmpty($ExchangeMailCc)){
+            $ExchangeMailCcList = $ExchangeMailCc.Split(";");
+            ForEach ($Recipient in $ExchangeMailCcList)
+            {
+                $message.CcRecipients.Add($Recipient) | Out-Null # Out-Null used here not to go into pipeline
+            }
         }
-
         # Add each specified "Bcc" recipient
         # Split attachment string into array
-        $ExchangeMailBccList = $ExchangeMailBcc.Split(";");
-        ForEach ($Recipient in $ExchangeMailBccList)
-        {
-            $message.BccRecipients.Add($Recipient) | Out-Null # Out-Null used here not to go into pipeline
+        if (![string]::IsNullOrEmpty($ExchangeMailBcc)){
+            $ExchangeMailBccList = $ExchangeMailBcc.Split(";");
+            ForEach ($Recipient in $ExchangeMailBccList)
+            {
+                $message.BccRecipients.Add($Recipient) | Out-Null # Out-Null used here not to go into pipeline
+            }
         }
 
         # Send the message (copy gets saved in sent items of the user)
@@ -114,6 +117,7 @@ function New-ExchangeMeeting
         [parameter(Mandatory=$True)][string] $ExchangeMeetingBody,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingStartDate,
         [parameter(Mandatory=$True)][string] $ExchangeMeetingEndDate,
+        [parameter(Mandatory=$False)][string] $ExchangeMeetingLocation,
         [parameter(Mandatory=$True)][string] $ExchangeRequiredAttendees,
         [parameter(Mandatory=$False)][string] $ExchangeOptionalAttendees,
         [parameter(Mandatory=$False)][string] $ExchangeAttachments
@@ -162,6 +166,7 @@ function New-ExchangeMeeting
             $appointment.Body = $ExchangeMeetingBody
             $appointment.Start = $MeetingStartDatetime;
             $appointment.End = $MeetingEndDatetime;
+            if (-not [string]::IsNullOrEmpty($ExchangeMeetingLocation)) {$appointment.Location = $ExchangeMeetingLocation;}
             foreach ($attendee in $ExchangeRequiredAttendeesList) {
                 $null = $appointment.RequiredAttendees.Add($attendee)
             }
@@ -215,6 +220,7 @@ function Edit-ExchangeMeeting
         [parameter(Mandatory=$False)][string] $ExchangeMeetingBody,
         [parameter(Mandatory=$False)][string] $ExchangeMeetingStartDate,
         [parameter(Mandatory=$False)][string] $ExchangeMeetingEndDate,
+        [parameter(Mandatory=$False)][string] $ExchangeMeetingLocation,
         [parameter(Mandatory=$False)][string] $ExchangeRequiredAttendees,
         [parameter(Mandatory=$False)][string] $ExchangeOptionalAttendees,
         [parameter(Mandatory=$False)][array] $ExchangeAttachments,
@@ -269,7 +275,7 @@ function Edit-ExchangeMeeting
                 $appointment.Update([Microsoft.Exchange.WebServices.Data.ConflictResolutionMode]::AutoResolve, $True)
                 # Add new attachment(s)
                 ForEach ($file in $ExchangeAttachmentsList){
-                    $appointment.Attachments.AddFileAttachment($file);
+                    $appointment.Attachments.AddFileAttachment($file) | Out-Null ; # Out-Null used here not to go into pipeline
                 }
             }
 
@@ -321,6 +327,11 @@ function Edit-ExchangeMeeting
                 $MeetingEndDatetime=[System.DateTime]::ParseExact($ExchangeMeetingEndDate,'yyyy-MM-ddTHH:mm:ss',$null)
                 # Set meeting end date
                 $appointment.End = $MeetingEndDatetime;
+            }
+
+            # Update location if specified
+            If (-not [string]::IsNullOrEmpty($ExchangeMeetingLocation)){
+                $appointment.Location = $ExchangeMeetingLocation;
             }
 
             # Save updated meeting and send notification to all attendees
