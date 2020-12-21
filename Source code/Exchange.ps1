@@ -11,6 +11,7 @@ function Send-ExchangeMail
         [parameter(Mandatory=$True)][string] $ExchangeMailTo,
         [parameter(Mandatory=$True)][string] $ExchangeMailTitle,
         [parameter(Mandatory=$True)][string] $ExchangeMailBody,
+        [parameter(Mandatory=$False)][string] $ExchangeMailBodyType,
         [parameter(Mandatory=$False)][string] $ExchangeAttachments
     )
 
@@ -37,7 +38,14 @@ function Send-ExchangeMail
         $message = New-Object Microsoft.Exchange.WebServices.Data.EmailMessage -ArgumentList $exchService
         $message.Subject = $ExchangeMailTitle
         $message.Body = $ExchangeMailBody + "`r`n"
-        $message.Body.BodyType = 'HTML'
+
+        # Set Body type (Default = HTML)
+        If ($ExchangeMailBodyType.ToLower() -eq "text"){
+            $message.Body.BodyType = 'Text'
+        }
+        Else{
+            $message.Body.BodyType = 'HTML'
+        }
 
         # Add attachments if specified
         if ($ExchangeAttachments){
