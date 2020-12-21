@@ -9,6 +9,8 @@ function Send-ExchangeMail
         [parameter(Mandatory=$True)][string] $ExchangeUserName,
         [parameter(Mandatory=$True)][SecureString] $ExchangePassword,
         [parameter(Mandatory=$True)][string] $ExchangeMailTo,
+        [parameter(Mandatory=$False)][string] $ExchangeMailCc,
+        [parameter(Mandatory=$False)][string] $ExchangeMailBcc,
         [parameter(Mandatory=$True)][string] $ExchangeMailTitle,
         [parameter(Mandatory=$True)][string] $ExchangeMailBody,
         [parameter(Mandatory=$False)][string] $ExchangeMailBodyType,
@@ -63,12 +65,28 @@ function Send-ExchangeMail
             }
         }
 
-        # Add each specified recipient
+        # Add each specified "To" recipient
         # Split attachment string into array
         $ExchangeMailToList = $ExchangeMailTo.Split(";");
         ForEach ($Recipient in $ExchangeMailToList)
         {
             $message.ToRecipients.Add($Recipient) | Out-Null # Out-Null used here not to go into pipeline
+        }
+
+        # Add each specified "Cc" recipient
+        # Split attachment string into array
+        $ExchangeMailCcList = $ExchangeMailCc.Split(";");
+        ForEach ($Recipient in $ExchangeMailCcList)
+        {
+            $message.CcRecipients.Add($Recipient) | Out-Null # Out-Null used here not to go into pipeline
+        }
+
+        # Add each specified "Bcc" recipient
+        # Split attachment string into array
+        $ExchangeMailBccList = $ExchangeMailBcc.Split(";");
+        ForEach ($Recipient in $ExchangeMailBccList)
+        {
+            $message.BccRecipients.Add($Recipient) | Out-Null # Out-Null used here not to go into pipeline
         }
 
         # Send the message (copy gets saved in sent items of the user)
