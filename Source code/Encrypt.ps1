@@ -49,10 +49,16 @@ function Export-EncryptedSecureString(){
         [Parameter(Mandatory=$true)] [Security.SecureString] $Password
     )
 
-    # Create and export Key
-    $Key = New-Object Byte[] 16
-    [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($key)
-    $Key | Out-File $KeyFile
+    # Create and export Key if doesn't exist
+    if (Test-Path $KeyFile -PathType leaf)
+    {
+        $Key = Get-Content $KeyFile
+    }
+    else {
+        $Key = New-Object Byte[] 16
+        [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($key)
+        $Key | Out-File $KeyFile
+    }
 
     # Create and export Password File
     $Password | ConvertFrom-SecureString -Key $Key | Out-File $PasswordFile

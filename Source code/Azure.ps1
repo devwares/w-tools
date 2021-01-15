@@ -199,7 +199,7 @@ Function Start-AzureVm()
     param
     (
         [Parameter(Mandatory=$true)] [string] $VmName,
-        [Parameter(Mandatory=$true)] [string] $RegGroupName,
+        [Parameter(Mandatory=$true)] [string] $ResGroupName,
         [Parameter(Mandatory=$true)] [string] $Tenant,
         [Parameter(Mandatory=$true)] [string] $User,
         [Parameter(Mandatory=$true)] [Security.SecureString] $Password
@@ -209,7 +209,7 @@ Function Start-AzureVm()
 
         $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $User, $Password
         Connect-AzAccount -Credential $Credential -Tenant $Tenant
-        Start-AzVM -ResourceGroupName $RegGroupName -Name $VmName
+        Start-AzVM -ResourceGroupName $ResGroupName -Name $VmName -NoWait
 
   }
     Catch {
