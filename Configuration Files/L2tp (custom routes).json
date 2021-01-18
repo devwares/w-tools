@@ -1,0 +1,31 @@
+{
+    "GENERAL" : {
+        "Version" : "1.0",
+        "Environment": "TEST",
+        "LogFileName" : "AddVpn.log"
+    },
+    "PARAMETERS" : {
+        "VpnConName" : "Contoso L2tp",
+        "VpnType" : "l2tp",
+        "VpnServerAddress" : "vpngw.domain.com",
+        "PreSharedKey" : "ifgtXgtrtWAgtrgtg3s6",
+        "CaCert" : "",
+        "DestinationNetworks" : [
+            {
+                "Name": "firewall-vnet",
+                "Address": "10.20.1.0",
+    			      "NetMask": "24"
+            },
+            {
+                "Name": "dmz-vnet",
+                "Address": "10.30.4.0",
+    			      "NetMask": "24"
+            },
+            {
+                "Name": "private-vnet",
+                "Address": "10.40.0.0",
+    			      "NetMask": "16"
+            }
+        ]
+    }
+}

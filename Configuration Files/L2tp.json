@@ -1,0 +1,16 @@
+{
+    "GENERAL" : {
+        "Version" : "1.0",
+        "Environment": "TEST",
+        "LogFileName" : "AddVpn.log"
+    },
+    "PARAMETERS" : {
+        "VpnConName" : "Contoso L2tp (Full)",
+        "VpnType" : "l2tp",
+        "VpnServerAddress" : "vpngw.domain.com",
+        "PreSharedKey" : "ifgtXgtrtWAgtrgtg3s6",
+        "CaCert" : "",
+        "DestinationNetworks" : [
+        ]
+    }
+}
