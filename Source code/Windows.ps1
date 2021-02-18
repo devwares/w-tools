@@ -275,3 +275,51 @@ function Disable-UserAccessControl {
     Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ConsentPromptBehaviorAdmin" -Value 00000000 -Force
     Write-Host "User Access Control (UAC) has been disabled." -ForegroundColor Green    
 }
+
+function Get-BroadcastAddress
+{
+   
+    param
+    (
+        [Parameter (Mandatory=$true)] $IPAddress,
+        [Parameter (Mandatory=$false)] $SubnetMask='255.255.255.0'
+    )
+
+    filter Convert-IP2Decimal
+    {
+        ([IPAddress][String]([IPAddress]$_)).Address
+    }
+
+
+    filter Convert-Decimal2IP
+    {
+    ([System.Net.IPAddress]$_).IPAddressToString 
+    }
+
+
+    [UInt32]$ip = $IPAddress | Convert-IP2Decimal
+    [UInt32]$subnet = $SubnetMask | Convert-IP2Decimal
+    [UInt32]$broadcast = $ip -band $subnet 
+    $broadcast -bor -bnot $subnet | Convert-Decimal2IP
+
+}
+
+function Send-Wol
+{
+    param (
+        [Parameter(Mandatory=$true)][string]$MacAddress,
+        [Parameter(Mandatory=$true)][string]$IpAddress,
+        [Parameter(Mandatory=$False)][string]$SubnetMask = "255.255.255.0",
+        [Parameter(Mandatory=$false)][string]$Port = 9
+    )
+
+    $MacAddress = ($MacAddress.Replace("-","")).Replace(":","")
+    $BroadcastAddress = Get-BroadcastAddress -IPAddress $IpAddress -SubnetMask $SubnetMask
+    $target = 0,2,4,6,8,10 | % {[convert]::ToByte($MacAddress.Substring($_,2),16)}
+    $packet = (,[byte]255 * 6) + ($target * 16)
+    $udpclient = New-Object System.Net.Sockets.UdpClient
+    $udpclient.Connect($BroadcastAddress,$Port)
+    [void]$udpclient.Send($packet, 102)
+    Write-Host "$IpAddress $MacAddress $BroadcastAddress"
+
+}
