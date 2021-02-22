@@ -6,7 +6,7 @@ function List-Exceptions {
                 $_.Fullname -match 'Exception'
             }
         } Catch {}
-    } | Select FullName 
+    } | Select FullName  | Sort-Object -Property FullName
 }
 
 Function Test-Exceptions {
