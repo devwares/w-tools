@@ -65,4 +65,17 @@ function Export-EncryptedSecureString(){
 
 }
 
+function Convert-SecureStringToPlainText 
+{
 
+    param(
+        [Parameter(Mandatory=$true)] [Securestring] $SecureString
+    )
+
+    # Get unsecure client_secret
+    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
+    $PlainText = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+
+    Return $PlainText
+
+}
