@@ -1,12 +1,11 @@
-#######################################################################################################
+###############################################################################################
 #
-#			  			PROJET
+#			  		W-TOOLS
 #
-#######################################################################################################
-
+###############################################################################################
 
 --------------------------------------
-NOTES PROCHAIN COMMIT
+NEXT COMMIT
 --------------------------------------
 
 --------------------------------------
@@ -14,32 +13,9 @@ TODO
 --------------------------------------
 
 --------------------------------------
-DIVERS
+EVOLUTIONS
 --------------------------------------
 
 --------------------------------------
-IDEES
+MISC
 --------------------------------------
-Recursive function to generate Json from CSV or Array depending on specified criterias
-	e.g : for VMs, Subscription=>Vnet=>Subnet=>Vm
-
---------------------------------------
-IDEES SHAREPOINT
---------------------------------------
-Ajouter un param pour supprimer le fichier source apres upload succes dans fx download/upload
-Ajouter TargetDirectory dans Download/upload
-Downloadfilefromlibrary : ajouter folder source
-- liste des sites d'une collection de sites
-- fonction
-	- en entrée soit : type liste (library), site, element, file, folder
-	-> 
-
-Function Set-SPAuthorisation()
-{
-}
-
-Function Remove-SPFile()
-{
-}
-
-Function 

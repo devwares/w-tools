@@ -25,3 +25,14 @@ function Read-String
     return $EnteredValue
 
 }
+
+function Read-Module
+{
+    param
+    (
+        [Parameter(Mandatory=$true)][string] $ModuleFileFullPath
+    )
+    $ModuleName = [io.path]::GetFileNameWithoutExtension($ModuleFileFullPath)
+    Get-Module | Where-Object -Property "Name" -Like "*$ModuleName*" | Remove-Module
+    Import-Module $ModuleFileFullPath
+}
